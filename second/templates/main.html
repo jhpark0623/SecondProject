@@ -10,8 +10,8 @@
  <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=863559e6bebce003983f160e07c1ac27&libraries=services"></script>
 
     <script>
-<!--        // Django에서 전달된 violations 데이터를 JS 배열로 변환-->
-<!--        var violations = {{ violations|safe }};-->
+         // Django에서 전달된 violations 데이터를 JS 배열로 변환
+         // var violations = {{ violations|safe }};
 
         // 테스트용 카메라 / 주차장 데이터
         var cameras = [
@@ -34,144 +34,144 @@
 
         var currentInfoWindow = null;
 
-<!--        // 단속 마커 표시-->
-<!--        violations.forEach(function(v) {-->
-<!--            var marker = new kakao.maps.Marker({-->
-<!--                position: new kakao.maps.LatLng(v.latitude, v.longitude),-->
-<!--                map: map-->
-<!--            });-->
-
-<!--            var overlay = new kakao.maps.CustomOverlay({-->
-<!--                content: `<div style="padding:5px; background:white; border:1px solid #888; border-radius:5px;">${v.address}</div>`,-->
-<!--                map: null,-->
-<!--                position: marker.getPosition()-->
-<!--            });-->
-
-<!--            kakao.maps.event.addListener(marker, 'click', function() {-->
-<!--                if (currentInfoWindow) currentInfoWindow.setMap(null);-->
-
-<!--                if (currentInfoWindow !== overlay) {-->
-<!--                    overlay.setMap(map);-->
-<!--                    currentInfoWindow = overlay;-->
-<!--                } else {-->
-<!--                    currentInfoWindow = null;-->
-<!--                }-->
-<!--            });-->
-<!--        });-->
-
-<!--        // 거리 계산 함수 (Haversine 공식)-->
-<!--        function getDistance(lat1, lng1, lat2, lng2) {-->
-<!--            var R = 6371e3; // 지구 반경(m)-->
-<!--            var rad = Math.PI / 180;-->
-<!--            var φ1 = lat1 * rad;-->
-<!--            var φ2 = lat2 * rad;-->
-<!--            var Δφ = (lat2 - lat1) * rad;-->
-<!--            var Δλ = (lng2 - lng1) * rad;-->
-
-<!--            var a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +-->
-<!--                    Math.cos(φ1) * Math.cos(φ2) *-->
-<!--                    Math.sin(Δλ/2) * Math.sin(Δλ/2);-->
-<!--            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));-->
-
-<!--            return R * c;-->
-<!--        }-->
-
-<!--        // 내 위치 표시 (빨간색 기본 마커)-->
-<!--        if (navigator.geolocation) {-->
-<!--            navigator.geolocation.getCurrentPosition(function(position) {-->
-<!--                var lat = position.coords.latitude;-->
-<!--                var lng = position.coords.longitude;-->
-
-<!--                console.log("내 위치:", lat, lng);-->
-
-<!--                var locPosition = new kakao.maps.LatLng(lat, lng);-->
-
-<!--                // 지도 중심 이동-->
-<!--                map.setCenter(locPosition);-->
-
-<!--                // 내 위치 마커-->
-<!--                var userMarker = new kakao.maps.Marker({-->
-<!--                    position: locPosition,-->
-<!--                    map: map,-->
-<!--                    title: '내 위치'-->
-<!--                });-->
-
-<!--                // 내 위치 Overlay-->
-<!--                var userOverlay = new kakao.maps.CustomOverlay({-->
-<!--                    content: `<div style="padding:5px; background:#ffd0d0; border:1px solid #888; border-radius:5px;">내 위치</div>`,-->
-<!--                    map: null,-->
-<!--                    position: userMarker.getPosition()-->
-<!--                });-->
-
-<!--                kakao.maps.event.addListener(userMarker, 'click', function() {-->
-<!--                    if (currentInfoWindow) currentInfoWindow.setMap(null);-->
-
-<!--                    if (currentInfoWindow !== userOverlay) {-->
-<!--                        userOverlay.setMap(map);-->
-<!--                        currentInfoWindow = userOverlay;-->
-<!--                    } else {-->
-<!--                        currentInfoWindow = null;-->
-<!--                    }-->
-<!--                });-->
-
-<!--                // 반경 500m 원-->
-<!--                var circle = new kakao.maps.Circle({-->
-<!--                    center: locPosition,-->
-<!--                    radius: 500,-->
-<!--                    strokeWeight: 2,-->
-<!--                    strokeColor: '#FF0000',-->
-<!--                    strokeOpacity: 0.7,-->
-<!--                    fillColor: '#FF0000',-->
-<!--                    fillOpacity: 0.1-->
-<!--                });-->
-<!--                circle.setMap(map);-->
-
-<!--                // 카메라 마커 표시 (빨간색)-->
-<!--                cameras.forEach(function(cam) {-->
-<!--                    var dist = getDistance(lat, lng, cam.lat, cam.lng);-->
-<!--                    if (dist <= 500) {-->
-<!--                        var marker = new kakao.maps.Marker({-->
-<!--                            position: new kakao.maps.LatLng(cam.lat, cam.lng),-->
-<!--                            map: map,-->
-<!--                            image: new kakao.maps.MarkerImage(-->
-<!--                                "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/red_b.png",-->
-<!--                                new kakao.maps.Size(40, 42))-->
-<!--                        });-->
-<!--                        var infowindow = new kakao.maps.InfoWindow({-->
-<!--                            content: `<div style="padding:5px;">${cam.name} (${dist.toFixed(0)}m)</div>`-->
-<!--                        });-->
-<!--                        kakao.maps.event.addListener(marker, 'click', function() {-->
-<!--                            infowindow.open(map, marker);-->
-<!--                        });-->
-<!--                    }-->
-<!--                });-->
-
-<!--                // 주차장 마커 표시 (파란색)-->
-<!--                parkings.forEach(function(p) {-->
-<!--                    var dist = getDistance(lat, lng, p.lat, p.lng);-->
-<!--                    if (dist <= 500) {-->
-<!--                        var marker = new kakao.maps.Marker({-->
-<!--                            position: new kakao.maps.LatLng(p.lat, p.lng),-->
-<!--                            map: map,-->
-<!--                            image: new kakao.maps.MarkerImage(-->
-<!--                                "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/blue_b.png",-->
-<!--                                new kakao.maps.Size(40, 42))-->
-<!--                        });-->
-<!--                        var infowindow = new kakao.maps.InfoWindow({-->
-<!--                            content: `<div style="padding:5px;">${p.name} (${dist.toFixed(0)}m)</div>`-->
-<!--                        });-->
-<!--                        kakao.maps.event.addListener(marker, 'click', function() {-->
-<!--                            infowindow.open(map, marker);-->
-<!--                        });-->
-<!--                    }-->
-<!--                });-->
-
-<!--            }, function(error) {-->
-<!--                console.error('위치 정보를 가져오지 못했습니다.', error);-->
-<!--            });-->
-<!--        } else {-->
-<!--            alert('브라우저에서 위치 정보를 지원하지 않습니다.');-->
-<!--        }-->
+         // // 단속 마커 표시
+         // violations.forEach(function(v) {
+         //     var marker = new kakao.maps.Marker({
+         //         position: new kakao.maps.LatLng(v.latitude, v.longitude),
+         //         map: map
+         //     });
+         //
+         //     var overlay = new kakao.maps.CustomOverlay({
+         //         content: `<div style="padding:5px; background:white; border:1px solid #888; border-radius:5px;">${v.address}</div>`,
+         //         map: null,
+         //         position: marker.getPosition()
+         //     });
+         //
+         //     kakao.maps.event.addListener(marker, 'click', function() {
+         //         if (currentInfoWindow) currentInfoWindow.setMap(null);
+         //
+         //         if (currentInfoWindow !== overlay) {
+         //             overlay.setMap(map);
+         //             currentInfoWindow = overlay;
+         //         } else {
+         //             currentInfoWindow = null;
+         //         }
+         //     });
+         // });
+         //
+         // // 거리 계산 함수 (Haversine 공식)
+         // function getDistance(lat1, lng1, lat2, lng2) {
+         //     var R = 6371e3; // 지구 반경(m)
+         //     var rad = Math.PI / 180;
+         //     var φ1 = lat1 * rad;
+         //     var φ2 = lat2 * rad;
+         //     var Δφ = (lat2 - lat1) * rad;
+         //     var Δλ = (lng2 - lng1) * rad;
+         //
+         //     var a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+         //             Math.cos(φ1) * Math.cos(φ2) *
+         //             Math.sin(Δλ/2) * Math.sin(Δλ/2);
+         //     var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+         //
+         //     return R * c;
+         // }
+         //
+         // // 내 위치 표시 (빨간색 기본 마커)
+         // if (navigator.geolocation) {
+         //     navigator.geolocation.getCurrentPosition(function(position) {
+         //         var lat = position.coords.latitude;
+         //         var lng = position.coords.longitude;
+         //
+         //         console.log("내 위치:", lat, lng);
+         //
+         //         var locPosition = new kakao.maps.LatLng(lat, lng);
+         //
+         //         // 지도 중심 이동
+         //         map.setCenter(locPosition);
+         //
+         //         // 내 위치 마커
+         //         var userMarker = new kakao.maps.Marker({
+         //             position: locPosition,
+         //             map: map,
+         //             title: '내 위치'
+         //         });
+         //
+         //         // 내 위치 Overlay
+         //         var userOverlay = new kakao.maps.CustomOverlay({
+         //             content: `<div style="padding:5px; background:#ffd0d0; border:1px solid #888; border-radius:5px;">내 위치</div>`,
+         //             map: null,
+         //             position: userMarker.getPosition()
+         //         });
+         //
+         //         kakao.maps.event.addListener(userMarker, 'click', function() {
+         //             if (currentInfoWindow) currentInfoWindow.setMap(null);
+         //
+         //             if (currentInfoWindow !== userOverlay) {
+         //                 userOverlay.setMap(map);
+         //                 currentInfoWindow = userOverlay;
+         //             } else {
+         //                 currentInfoWindow = null;
+         //             }
+         //         });
+         //
+         //         // 반경 500m 원
+         //         var circle = new kakao.maps.Circle({
+         //             center: locPosition,
+         //             radius: 500,
+         //             strokeWeight: 2,
+         //             strokeColor: '#FF0000',
+         //             strokeOpacity: 0.7,
+         //             fillColor: '#FF0000',
+         //             fillOpacity: 0.1
+         //         });
+         //         circle.setMap(map);
+         //
+         //         // 카메라 마커 표시 (빨간색)
+         //         cameras.forEach(function(cam) {
+         //             var dist = getDistance(lat, lng, cam.lat, cam.lng);
+         //             if (dist <= 500) {
+         //                 var marker = new kakao.maps.Marker({
+         //                     position: new kakao.maps.LatLng(cam.lat, cam.lng),
+         //                     map: map,
+         //                     image: new kakao.maps.MarkerImage(
+         //                         "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/red_b.png",
+         //                         new kakao.maps.Size(40, 42))
+         //                 });
+         //                 var infowindow = new kakao.maps.InfoWindow({
+         //                     content: `<div style="padding:5px;">${cam.name} (${dist.toFixed(0)}m)</div>`
+         //                 });
+         //                 kakao.maps.event.addListener(marker, 'click', function() {
+         //                     infowindow.open(map, marker);
+         //                 });
+         //             }
+         //         });
+         //
+         //         // 주차장 마커 표시 (파란색)
+         //         parkings.forEach(function(p) {
+         //             var dist = getDistance(lat, lng, p.lat, p.lng);
+         //             if (dist <= 500) {
+         //                 var marker = new kakao.maps.Marker({
+         //                     position: new kakao.maps.LatLng(p.lat, p.lng),
+         //                     map: map,
+         //                     image: new kakao.maps.MarkerImage(
+         //                         "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/blue_b.png",
+         //                         new kakao.maps.Size(40, 42))
+         //                 });
+         //                 var infowindow = new kakao.maps.InfoWindow({
+         //                     content: `<div style="padding:5px;">${p.name} (${dist.toFixed(0)}m)</div>`
+         //                 });
+         //                 kakao.maps.event.addListener(marker, 'click', function() {
+         //                     infowindow.open(map, marker);
+         //                 });
+         //             }
+         //         });
+         //
+         //     }, function(error) {
+         //         console.error('위치 정보를 가져오지 못했습니다.', error);
+         //     });
+         // } else {
+         //     alert('브라우저에서 위치 정보를 지원하지 않습니다.');
+         // }
     </script>
 
 {% endblock %}
