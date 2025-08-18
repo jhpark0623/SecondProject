@@ -1,5 +1,14 @@
 from django.shortcuts import render
 
+from second.models import Violation
+import json
+
+
 # Create your views here.
 def main(request):
-    return render(request, 'main.html')
+    violations = Violation.objects.all().values('latitude', 'longitude', 'address')
+
+    context = {
+        'violations': json.dumps(list(violations))
+    }
+    return render(request, 'main.html', context)
