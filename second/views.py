@@ -1,6 +1,4 @@
 from django.shortcuts import render
-
-from second.models import Violation
 import json
 
 
@@ -11,4 +9,6 @@ def main(request):
     # context = {
     #     'violations': json.dumps(list(violations))
     # }
+
     return render(request, 'main.html')
+
