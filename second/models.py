@@ -37,3 +37,11 @@ class ParkingAvailability(models.Model):
 
     def __str__(self):
         return f"{self.pkplcNm} ({self.avblPklotCnt}/{self.pklotCnt})"
+
+class Camera(models.Model) :
+    name = models.CharField(max_length=100, null=True)
+    lat = models.FloatField()
+    lon = models.FloatField()
+
+    def __str__(self):
+        return self.name
