@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 
@@ -9,7 +10,7 @@
   <div class="row">
 
     <!-- 🅿️ 왼쪽 주차장 리스트 -->
-    <div class="col-md-3 bg-light p-3" style="height: 800px; overflow-y: auto;">
+    <div class="col-md-3 bg-light p-3" style="height: 800px; overflow-y: auto;" >
       <h5>주차장 목록</h5>
       <ul class="list-group">
         {% for b in basics %}
@@ -19,13 +20,10 @@
               총 구획: {{ b.total }}<br>
               가용 대수: {{ b.avblPklotCnt }}<br>
               제공 시간: {{ b.ocrnDt }}<br>
-              위도: {{ b.lat }}<br>
-              경도: {{ b.lng }}
+
             </div>
           </li>
         {% endfor %}
-
-
       </ul>
     </div>
 
@@ -90,12 +88,18 @@
         });
     });
 
-    // 🎥 카메라 마커
+    // 🎥 카메라 마커 (커스텀 아이콘)
+    var cameraMarkerImage = new kakao.maps.MarkerImage(
+        "{% static 'imgs/camera_marker.png' %}",
+        new kakao.maps.Size(40, 40)  // 크기는 필요에 따라 조정 가능
+    );
+
     cameras.forEach(function(c){
         var marker = new kakao.maps.Marker({
             position: new kakao.maps.LatLng(c.lat, c.lng),
             title: c.name,
-            map: map
+            map: map,
+            image: cameraMarkerImage
         });
 
         marker.isOpen = false;
@@ -109,7 +113,6 @@
                     <div class="card" style="width: 18rem; margin:0;">
                         <div class="card-body">
                             <h5 class="card-title">${c.name}</h5>
-                            <p class="card-text">카메라 위치</p>
                         </div>
                     </div>
                 `);
