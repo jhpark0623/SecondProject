@@ -1,8 +1,186 @@
-
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 
-메인 페이지
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="container-fluid">
+  <div class="row">
+
+    <!-- 🅿️ 왼쪽 주차장 리스트 -->
+    <div class="col-md-3 bg-light p-3" style="height: 800px; overflow-y: auto;" >
+      <h5>주차장 목록</h5>
+      <ul class="list-group">
+        {% for b in basics %}
+          <li class="list-group-item d-flex justify-content-between align-items-start parking-item" data-name="{{ b.name }}">
+            <div>
+              <div class="fw-bold">{{ b.name }}</div>
+              총 구획: {{ b.total }}<br>
+              가용 대수: {{ b.avblPklotCnt }}<br>
+              제공 시간: {{ b.ocrnDt }}<br>
+
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- 🗺️ 오른쪽 지도 -->
+    <div class="col-md-9 p-0">
+      <div id="map" style="width:100%; height:800px;"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Kakao Maps API -->
+<script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=863559e6bebce003983f160e07c1ac27&libraries=services"></script>
+
+<script>
+    var mapContainer = document.getElementById('map');
+    var fixedLat = 37.658359;
+    var fixedLng = 126.773917;
+    var locPosition = new kakao.maps.LatLng(fixedLat, fixedLng);
+    var mapOption = { center: locPosition, level: 4 };
+    var map = new kakao.maps.Map(mapContainer, mapOption);
+
+    var basics = JSON.parse('{{ basics_json|escapejs }}');
+    var cameras = JSON.parse('{{ cameras_json|escapejs }}');
+    var availability = JSON.parse('{{ availability_json|escapejs }}');
+
+    var infowindow = new kakao.maps.InfoWindow({});
+    var markerMap = {};  // 마커를 이름으로 저장
+
+    // 중심 마커
+    new kakao.maps.Marker({
+        position: locPosition,
+        map: map,
+        title: '정발산역 기준 위치'
+    });
+
+    // 반경 원
+    new kakao.maps.Circle({
+        center: locPosition,
+        radius: 500,
+        strokeWeight: 2,
+        strokeColor: '#FF0000',
+        strokeOpacity: 0.7,
+        fillColor: '#FF0000',
+        fillOpacity: 0.1,
+        map: map
+    });
+
+    // 🅿️ 주차장 마커 생성
+    basics.forEach(function(b){
+        var marker = new kakao.maps.Marker({
+            position: new kakao.maps.LatLng(b.lat, b.lng),
+            title: b.name,
+            map: map
+        });
+
+        marker.isOpen = false;
+        markerMap[b.name] = marker;  // 이름으로 마커 저장
+
+        kakao.maps.event.addListener(marker, 'click', function() {
+            toggleInfowindow(marker, b.name);
+        });
+    });
+
+    // 🎥 카메라 마커 (커스텀 아이콘)
+    var cameraMarkerImage = new kakao.maps.MarkerImage(
+        "{% static 'imgs/camera_marker.png' %}",
+        new kakao.maps.Size(40, 40)  // 크기는 필요에 따라 조정 가능
+    );
+
+    cameras.forEach(function(c){
+        var marker = new kakao.maps.Marker({
+            position: new kakao.maps.LatLng(c.lat, c.lng),
+            title: c.name,
+            map: map,
+            image: cameraMarkerImage
+        });
+
+        marker.isOpen = false;
+        kakao.maps.event.addListener(marker, 'click', function() {
+            if(marker.isOpen){
+                infowindow.close();
+                marker.isOpen = false;
+            } else {
+                infowindow.close();
+                infowindow.setContent(`
+                    <div class="card" style="width: 18rem; margin:0;">
+                        <div class="card-body">
+                            <h5 class="card-title">${c.name}</h5>
+                        </div>
+                    </div>
+                `);
+                infowindow.open(map, marker);
+                marker.isOpen = true;
+            }
+        });
+    });
+
+    // Ⓜ️ 가용 주차 구획 마커
+    availability.forEach(function(a){
+        var b = basics.find(b => b.name === a.name);
+        if(!b) return;
+
+        var marker = new kakao.maps.Marker({
+            position: new kakao.maps.LatLng(b.lat, b.lng),
+            title: a.name,
+            map: map
+        });
+
+        marker.isOpen = false;
+
+        kakao.maps.event.addListener(marker, 'click', function() {
+            toggleInfowindow(marker, a.name);
+        });
+
+        markerMap[a.name] = marker;  // 덮어쓰기 가능
+    });
+
+    // 📌 InfoWindow 토글 함수
+    function toggleInfowindow(marker, name) {
+        var a = availability.find(av => av.name === name);
+        var b = basics.find(b => b.name === name);
+
+        if(marker.isOpen){
+            infowindow.close();
+            marker.isOpen = false;
+        } else {
+            infowindow.close();
+            infowindow.setContent(`
+                <div class="card" style="width: 18rem; margin:0;">
+                    <div class="card-body">
+                        <h5 class="card-title">${name}</h5>
+                        <p class="card-text">
+                            총 구획: ${a ? a.total : b.total}<br>
+                            가용 구획: ${a ? a.available : 'N/A'}<br>
+                            제공 시간: ${a ? a.time : '-'}
+                        </p>
+                    </div>
+                </div>
+            `);
+            infowindow.open(map, marker);
+            marker.isOpen = true;
+        }
+    }
+
+    // ✅ 리스트 클릭 시 해당 마커로 이동 및 InfoWindow 열기
+    document.querySelectorAll('.parking-item').forEach(function(item){
+        item.addEventListener('click', function(){
+            var name = this.getAttribute('data-name');
+            var marker = markerMap[name];
+            if(marker){
+                map.panTo(marker.getPosition());
+                toggleInfowindow(marker, name);
+            }
+        });
+    });
+
+</script>
 
 {% endblock %}
