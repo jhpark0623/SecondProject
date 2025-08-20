@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django_apscheduler',
     'second',
     'accounts',
+    'file',
 ]
 
 AUTH_USER_MODEL = "accounts.CustomUser"
