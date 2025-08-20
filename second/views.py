@@ -1,12 +1,13 @@
 from django.shortcuts import render
 
+from file.models import CCTV
 from second.models import ParkingBasic, Camera, ParkingAvailability
 
 
 def map_view(request):
     basics = ParkingBasic.objects.all()
-    cameras = Camera.objects.all()
     availability = ParkingAvailability.objects.all()
+    cctv = CCTV.objects.all()
 
     # 가용 데이터를 dict로 바꿔서 빠르게 조회
     availability_dict = {
@@ -34,10 +35,14 @@ def map_view(request):
     # JSON 데이터
     import json
     basics_json = json.dumps(basics_list)
-    cameras_json = json.dumps([
-        {"name": c.name, "lat": c.lat, "lng": c.lon}
-        for c in cameras
-    ])
+
+    cctvList=[]
+    for c in cctv:
+        roadNmAddr=c.roadNmAddr
+        cctv_info={"name": roadNmAddr, "lat": float(c.latCrdn), "lng": float(c.lonCrdn)}
+        cctvList.append(cctv_info)
+
+    cctv_json = json.dumps(cctvList)
     availability_json = json.dumps([
         {
             "name": a.pkplcNm,
@@ -51,7 +56,7 @@ def map_view(request):
     context = {
         "basics": basics_list,  # 여기에 기본 + 가용 정보 포함됨
         "basics_json": basics_json,
-        "cameras_json": cameras_json,
+        "cctv_json": cctv_json,
         "availability_json": availability_json,
     }
     return render(request, "main.html", context)
