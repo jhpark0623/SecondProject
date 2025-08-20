@@ -42,13 +42,13 @@
                             <button type="submit" class="btn btn-link nav-link">로그아웃</button>
                         </form>
                     </li><br>
-                    <li><a class="nav-link" href="#">내 정보</li><br>
+                    <li><a class="nav-link" href="#">내 정보</a></li><br>
                     <li>
                         <button class="btn btn-link nav-link">즐겨찾기</button>
                     </li><br>
                 {% else %}
                     <li><a class="nav-link" href="{% url 'login' %}">로그인</a></li><br>
-                    <li><a class="nav-link" href="{% url 'signup'%}">회원가입</a></li><br
+                    <li><a class="nav-link" href="{% url 'signup'%}">회원가입</a></li><br>
                     <li><a class="nav-link" href="#">고객센터</a></li>
                 {% endif %}
             </ul>
