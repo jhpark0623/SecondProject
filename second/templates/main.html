@@ -41,15 +41,40 @@
   .list-group {
     margin: 0;
   }
+
+  .sidebar {
+    width: 350px;
+    height: calc(100vh - 56px); /* 네비게이션 높이 빼고 */
+    display: flex;
+    flex-direction: column;
+  }
+
+.sidebar h5 {
+    /* 고정 높이 지정 */
+    height: 4rem; /* 필요에 따라 조정 */
+    line-height: 2rem;
+    margin: 0;
+    padding: 0 1rem;
+    border-bottom: 1px solid #dee2e6;
+    flex-shrink: 0;
+  }
+
+.sidebar ul.list-group {
+  flex-grow: 1;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  }
+
 </style>
 
 <div class="container-fluid p-0 m-0">
   <div class="d-flex full-height">
 
     <!-- 🅿️ 왼쪽 주차장 목록 -->
-    <div class="sidebar">
-      <h5 class="p-3 m-0 border-bottom">주차장 목록</h5>
-      <ul class="list-group list-group-flush">
+    <div class="sidebar d-flex flex-column" style="height: 100%;">
+      <h5 class="p-3 m-0 border-bottom flex-shrink-0">주차장 목록</h5>
+      <ul class="list-group list-group-flush flex-grow-1 overflow-auto">
         {% for b in basics %}
           <li class="list-group-item parking-item" data-name="{{ b.name }}">
             <div class="fw-bold">{{ b.name }}</div>
@@ -60,6 +85,7 @@
         {% endfor %}
       </ul>
     </div>
+
 
     <!-- 🗺️ 오른쪽 지도 -->
     <div class="map-area">
@@ -207,6 +233,9 @@
             }
         });
     });
+
+
+
 </script>
 
 {% endblock %}
