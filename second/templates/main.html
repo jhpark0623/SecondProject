@@ -100,14 +100,14 @@
 
 <script>
     const mapContainer = document.getElementById('map');
-    const fixedLat = 37.658359;
+    const fixedLat = 37.669359;
     const fixedLng = 126.773917;
     const locPosition = new kakao.maps.LatLng(fixedLat, fixedLng);
     const mapOption = { center: locPosition, level: 4 };
     const map = new kakao.maps.Map(mapContainer, mapOption);
 
     const basics = JSON.parse('{{ basics_json|escapejs }}');
-    const cameras = JSON.parse('{{ cameras_json|escapejs }}');
+    const cameras = JSON.parse('{{ cctv_json|escapejs }}');
     const availability = JSON.parse('{{ availability_json|escapejs }}');
 
     const infowindow = new kakao.maps.InfoWindow({});
@@ -116,7 +116,7 @@
     new kakao.maps.Marker({
         position: locPosition,
         map: map,
-        title: '정발산역 기준 위치'
+        title: '내위치'
     });
 
     new kakao.maps.Circle({
@@ -150,6 +150,7 @@
     );
 
     cameras.forEach(c => {
+
         const marker = new kakao.maps.Marker({
             position: new kakao.maps.LatLng(c.lat, c.lng),
             title: c.name,
@@ -176,6 +177,7 @@
                 marker.isOpen = true;
             }
         });
+
     });
 
     availability.forEach(a => {
@@ -233,6 +235,41 @@
             }
         });
     });
+
+    // 거리 계산 함수 (미터 단위)
+    function getDistance(lat1, lng1, lat2, lng2) {
+        const R = 6371000; // 지구 반지름 (단위: m)
+        const toRad = x => x * Math.PI / 180;
+
+        const dLat = toRad(lat2 - lat1);
+        const dLng = toRad(lng2 - lng1);
+
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                  Math.sin(dLng / 2) * Math.sin(dLng / 2);
+
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
+
+    // 기준 위치 좌표
+    const 기준위치_lat = fixedLat;
+    const 기준위치_lng = fixedLng;
+
+    let cctvInRange = false;
+
+    // CCTV 목록 중 200m 이내 있는지 확인
+    for (let c of cameras) {
+        const distance = getDistance(기준위치_lat, 기준위치_lng, c.lat, c.lng);
+        if (distance <= 200) {
+            cctvInRange = true;
+            break;
+        }
+    }
+
+    if (cctvInRange) {
+        alert("⚠️ 주의: 내위치 기준 200m 이내에 CCTV가 있습니다.");
+    }
 
 
 
