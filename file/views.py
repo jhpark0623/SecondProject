@@ -31,8 +31,6 @@ def upload_csv(request):
             reader = csv.DictReader(decoded_file)
 
             for row in reader:
-                print(row)
-
                 CCTV.objects.update_or_create(
                     managementNumber=row['무인교통단속카메라관리번호'],
                     defaults={
