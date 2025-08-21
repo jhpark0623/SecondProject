@@ -129,17 +129,8 @@
     const mapOption = { center: locPosition, level: 4 };
     const map = new kakao.maps.Map(mapContainer, mapOption);
 
-    // 줌 변경 시 레벨 4로 고정
-    kakao.maps.event.addListener(map, 'zoom_changed', function() {
-      if (map.getLevel() !== 4) {
-        map.setLevel(4);
-      }
-    });
+    map.setZoomable(false);
 
-    // 지도 리사이즈 시 레벨 4 고정
-    kakao.maps.event.addListener(map, 'resize', function() {
-      map.setLevel(4);
-    });
 
     const basics = JSON.parse('{{ basics_json|escapejs }}');
     const cameras = JSON.parse('{{ cctv_json|escapejs }}');
@@ -248,30 +239,70 @@
     });
 
     function toggleInfowindow(marker, name) {
-        const a = availability.find(av => av.name === name);
-        const b = basics.find(b => b.name === name);
+    const b = basics.find(b => b.name === name);
+    if (!b) return;
 
-        if (marker.isOpen) {
-            infowindow.close();
-            marker.isOpen = false;
-        } else {
-            infowindow.close();
-            infowindow.setContent(`
-                <div class="card" style="width: 18rem; margin:0;">
-                    <div class="card-body">
-                        <h5 class="card-title">${name}</h5>
-                        <p class="card-text">
-                            총 구획: ${a ? a.total : b.total}<br>
-                            가용 구획: ${a ? a.available : 'N/A'}<br>
-                            제공 시간: ${a ? a.time : '-'}
-                        </p>
-                    </div>
+    if (marker.isOpen) {
+        infowindow.close();
+        marker.isOpen = false;
+    } else {
+        infowindow.close();
+
+        infowindow.setContent(`
+            <div class="card shadow-sm" style="width: 300px; font-size: 14px; overflow-x: hidden;">
+                <div class="card-header bg-primary text-white fw-bold text-center">
+                    ${b.name}
                 </div>
-            `);
-            infowindow.open(map, marker);
-            marker.isOpen = true;
-        }
+
+                <div class="card-body p-2">
+                    <!-- 면수 정보 -->
+                    <div class="row gx-0 text-center mb-2">
+                        <div class="col-6 border-end">
+                            <div class="fw-bold">총 면수</div>
+                            <div>${b.total}</div>
+                        </div>
+                        <div class="col-6 bg-success text-white">
+                            <div class="fw-bold">가용 면수</div>
+                            <div>${b.avblPklotCnt}</div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- 표 정보 -->
+                    <table class="table table-sm mb-0">
+                        <tbody>
+                            <tr>
+                                <th scope="row">주소</th>
+                                <td>${b.address || '정보 없음'}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">운영시간</th>
+                                <td>
+                                    평일: ${b.weekdayTime || '-'}<br>
+                                    토요일: ${b.saturdayTime || '-'}<br>
+                                    휴일: ${b.holidayTime || '-'}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">주차요금</th>
+                                <td>
+                                    기본: ${b.basicRate || '-'}<br>
+                                    추가: ${b.addRate || '-'}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `);
+
+        infowindow.open(map, marker);
+        marker.isOpen = true;
     }
+}
+
+
 
     document.querySelectorAll('.parking-item').forEach(item => {
         item.addEventListener('click', () => {
