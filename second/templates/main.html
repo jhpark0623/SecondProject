@@ -16,7 +16,7 @@
   }
 
   .full-height {
-    height: calc(100vh - 56px); /* 네비게이션 높이 제외 */
+    height: calc(100vh - 56px);
   }
 
   .sidebar {
@@ -28,6 +28,7 @@
   .map-area {
     flex-grow: 1;
     height: 100%;
+    position: relative; /* 버튼 위치 절대 지정용 */
   }
 
   .list-group-item {
@@ -38,20 +39,15 @@
     border-right: none;
   }
 
-  .list-group {
-    margin: 0;
-  }
-
   .sidebar {
     width: 350px;
-    height: calc(100vh - 56px); /* 네비게이션 높이 빼고 */
+    height: calc(100vh - 56px);
     display: flex;
     flex-direction: column;
   }
 
-.sidebar h5 {
-    /* 고정 높이 지정 */
-    height: 4rem; /* 필요에 따라 조정 */
+  .sidebar h5 {
+    height: 4rem;
     line-height: 2rem;
     margin: 0;
     padding: 0 1rem;
@@ -59,11 +55,36 @@
     flex-shrink: 0;
   }
 
-.sidebar ul.list-group {
-  flex-grow: 1;
-  overflow-y: auto;
-  margin: 0;
-  padding: 0;
+  .sidebar ul.list-group {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+  }
+
+    .location-button {
+    position: absolute;
+    bottom: 30px;
+    right: 10px;
+    z-index: 10;
+    width: 40px;
+    height: 40px;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 5px;
+    cursor: pointer;
+    box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .location-button img {
+    width: 22px;
+    height: 22px;
+  }
+
   }
 
 </style>
@@ -72,7 +93,7 @@
   <div class="d-flex full-height">
 
     <!-- 🅿️ 왼쪽 주차장 목록 -->
-    <div class="sidebar d-flex flex-column" style="height: 100%;">
+    <div class="sidebar d-flex flex-column">
       <h5 class="p-3 m-0 border-bottom flex-shrink-0">주차장 목록</h5>
       <ul class="list-group list-group-flush flex-grow-1 overflow-auto">
         {% for b in basics %}
@@ -86,10 +107,12 @@
       </ul>
     </div>
 
-
     <!-- 🗺️ 오른쪽 지도 -->
     <div class="map-area">
       <div id="map" style="width:100%; height:100%;"></div>
+      <button class="location-button" onclick="moveToCurrentLocation()">
+        <img src="{% static 'imgs/location_icon.png' %}">
+      </button>
     </div>
 
   </div>
@@ -100,8 +123,11 @@
 
 <script>
     const mapContainer = document.getElementById('map');
-    const fixedLat = 37.669359;
-    const fixedLng = 126.773917;
+    const fixedLat = 37.6822186;
+    const fixedLng = 126.769498;
+    let currentMarker = null;
+    let currentCircle = null;
+
     const locPosition = new kakao.maps.LatLng(fixedLat, fixedLng);
     const mapOption = { center: locPosition, level: 4 };
     const map = new kakao.maps.Map(mapContainer, mapOption);
@@ -113,13 +139,14 @@
     const infowindow = new kakao.maps.InfoWindow({});
     const markerMap = {};
 
-    new kakao.maps.Marker({
+    // 초기 "내위치" 표시 (고정된 위치)
+    currentMarker = new kakao.maps.Marker({
         position: locPosition,
         map: map,
         title: '내위치'
     });
 
-    new kakao.maps.Circle({
+    currentCircle = new kakao.maps.Circle({
         center: locPosition,
         radius: 500,
         strokeWeight: 2,
@@ -150,7 +177,6 @@
     );
 
     cameras.forEach(c => {
-
         const marker = new kakao.maps.Marker({
             position: new kakao.maps.LatLng(c.lat, c.lng),
             title: c.name,
@@ -177,7 +203,6 @@
                 marker.isOpen = true;
             }
         });
-
     });
 
     availability.forEach(a => {
@@ -236,42 +261,68 @@
         });
     });
 
-    // 거리 계산 함수 (미터 단위)
     function getDistance(lat1, lng1, lat2, lng2) {
-        const R = 6371000; // 지구 반지름 (단위: m)
+        const R = 6371000;
         const toRad = x => x * Math.PI / 180;
-
         const dLat = toRad(lat2 - lat1);
         const dLng = toRad(lng2 - lng1);
-
         const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
                   Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
                   Math.sin(dLng / 2) * Math.sin(dLng / 2);
-
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c;
     }
 
-    // 기준 위치 좌표
-    const 기준위치_lat = fixedLat;
-    const 기준위치_lng = fixedLng;
+    // ✅ 현위치로 이동 함수
+    function moveToCurrentLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          const newPosition = new kakao.maps.LatLng(lat, lng);
 
-    let cctvInRange = false;
+          map.setCenter(newPosition);
 
-    // CCTV 목록 중 200m 이내 있는지 확인
-    for (let c of cameras) {
-        const distance = getDistance(기준위치_lat, 기준위치_lng, c.lat, c.lng);
-        if (distance <= 200) {
-            cctvInRange = true;
-            break;
-        }
+          // 새 마커/원 추가
+          currentMarker = new kakao.maps.Marker({
+            position: newPosition,
+            map: map,
+            title: '현재 위치'
+          });
+
+          currentCircle = new kakao.maps.Circle({
+            center: newPosition,
+            radius: 500,
+            strokeWeight: 2,
+            strokeColor: '#FF0000',
+            strokeOpacity: 0.7,
+            fillColor: '#FF0000',
+            fillOpacity: 0.1,
+            map: map
+          });
+
+          // CCTV 거리 확인
+          let cctvNear = false;
+          for (let c of cameras) {
+            const distance = getDistance(lat, lng, c.lat, c.lng);
+            if (distance <= 200) {
+              cctvNear = true;
+              break;
+            }
+          }
+
+          if (cctvNear) {
+            alert("⚠️ 주의: 현재 위치 기준 200m 이내에 CCTV가 있습니다.");
+          }
+
+        }, function(error) {
+          alert("📵 위치 정보를 가져올 수 없습니다.");
+          console.error(error);
+        });
+      } else {
+        alert("🚫 위치 정보 사용이 불가능한 브라우저입니다.");
+      }
     }
-
-    if (cctvInRange) {
-        alert("⚠️ 주의: 내위치 기준 200m 이내에 CCTV가 있습니다.");
-    }
-
-
 
 </script>
 
