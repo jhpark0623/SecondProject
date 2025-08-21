@@ -20,32 +20,47 @@ def map_view(request):
 
     # 템플릿에서 바로 사용 가능한 기본 + 가용 데이터 포함 리스트
     basics_list = []
+
     for b in basics:
         name = b.pkplcNm
+        pkplc_id = b.pkplcId
         basic_info = {
+            "id": pkplc_id,
             "name": name,
             "lat": float(b.latCrdn),
             "lng": float(b.lonCrdn),
             "total": int(b.pklotCnt) if b.pklotCnt else 0,
+            "address": b.roadNmAddr,
+
+            # 운영시간
+            "weekdayTime": f"{b.wkdayOprtStartTime} ~ {b.wkdayOprtEndTime}",
+            "saturdayTime": f"{b.satOprtStartTime} ~ {b.satOprtEndTime}",
+            "holidayTime": f"{b.hldyOprtStartTime} ~ {b.hldyOprtEndTime}",
+
+            # 요금
+            "basicRate": f"{b.parkingBscFare}원 / {b.parkingBscTime}분",
+            "addRate": f"{b.addUnitFare}원 / {b.addUnitTime}분",
+
+            # 가용 정보
             "avblPklotCnt": availability_dict.get(name, {}).get("available", "정보 없음"),
             "ocrnDt": availability_dict.get(name, {}).get("time", "-")
         }
         basics_list.append(basic_info)
 
-        # ✅ 가나다순 정렬
+
         basics_list.sort(key=lambda b: b["name"])
 
-    # JSON 데이터
     import json
     basics_json = json.dumps(basics_list)
 
-    cctvList=[]
+    cctvList = []
     for c in cctv:
-        roadNmAddr=c.roadNmAddr
-        cctv_info={"name": roadNmAddr, "lat": float(c.latCrdn), "lng": float(c.lonCrdn)}
+        roadNmAddr = c.roadNmAddr
+        cctv_info = {"name": roadNmAddr, "lat": float(c.latCrdn), "lng": float(c.lonCrdn)}
         cctvList.append(cctv_info)
 
     cctv_json = json.dumps(cctvList)
+
     availability_json = json.dumps([
         {
             "name": a.pkplcNm,
