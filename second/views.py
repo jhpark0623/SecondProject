@@ -32,6 +32,9 @@ def map_view(request):
         }
         basics_list.append(basic_info)
 
+        # ✅ 가나다순 정렬
+        basics_list.sort(key=lambda b: b["name"])
+
     # JSON 데이터
     import json
     basics_json = json.dumps(basics_list)
