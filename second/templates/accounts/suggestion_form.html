@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %} 건의하기 {% endblock %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 600px">
+    <h2 class="mb-4"> 건의하기 </h2>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="title" class="form-label">제목</label>
+            <input type="text" class="form-control" id="title" name="title" required autofocus>
+        </div>
+
+        <div class="mb-3">
+            <label for="content" class="form-label">내용</label>
+            <textarea class="form-control" id="content" name="content" rows="5" required></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary" >등록 </button>
+        <a class="btn btn-secondary" href="{% url 'suggestion_list' %}">취소</a>
+
+
+    </form>
+
+
+</div>
+
+{% endblock %}
