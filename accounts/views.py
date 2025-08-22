@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 
 User = get_user_model()
 
@@ -61,3 +62,17 @@ def profile_update(request):
             return redirect("/")  # 수정 후 메인 페이지로 이동
 
     return render(request, "/")
+
+
+def admin_page(request):
+    query = request.GET.get("q", "")
+
+    users = User.objects.all()
+
+    if query:
+        users = users.filter(
+            Q(username__icontains=query) |
+            Q(name__icontains=query) |
+            Q(email__icontains=query)
+        )
+    return render(request, "accounts/admin_page.html", {"users": users, "query" :query } )
