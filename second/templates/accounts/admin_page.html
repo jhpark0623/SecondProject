@@ -11,6 +11,12 @@
 {% block content %}
 
 
+<div class="search-wrapper">
+    <form method="get" class="search-form">
+     <input type="text" name="q" value="{{ query }}" placeholder="이름, 아이디, 이메일 검색">
+    <button class="btn11" type="submit">검색</button>
+  </form>
+</div>
 
  <div class="table">
 
@@ -73,12 +79,7 @@
 
  </div>
 
-<div class="search-wrapper">
-    <form method="get" class="search-form">
-     <input type="text" name="q" value="{{ query }}" placeholder="이름, 아이디, 이메일 검색">
-    <button class="btn11" type="submit">검색</button>
-  </form>
-</div>
+
 
 
 {% endblock %}
