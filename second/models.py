@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 # Create your models here.
 class ParkingBasic(models.Model):
@@ -45,3 +46,14 @@ class Camera(models.Model) :
 
     def __str__(self):
         return self.name
+
+class Favorite(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="favorites")
+    parking = models.ForeignKey(ParkingBasic, on_delete=models.CASCADE, related_name="favorited_by")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'parking')  # 같은 유저가 같은 주차장 중복 등록 방지
+
+    def __str__(self):
+        return f"{self.user} ♥ {self.parking.pkplcNm}"

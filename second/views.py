@@ -1,7 +1,12 @@
+from django.core.paginator import Paginator
 from django.shortcuts import render
+from django.http import JsonResponse, HttpResponseForbidden
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+from django.middleware.csrf import get_token
 
 from file.models import CCTV
-from second.models import ParkingBasic, Camera, ParkingAvailability
+from second.models import ParkingBasic, Camera, ParkingAvailability, Favorite
 
 
 def map_view(request):
@@ -9,7 +14,14 @@ def map_view(request):
     availability = ParkingAvailability.objects.all()
     cctv = CCTV.objects.all()
 
-    # 가용 데이터를 dict로 바꿔서 빠르게 조회
+    # 로그인 사용자 즐겨찾기 pkplcId 집합
+    fav_ids = set()
+    if request.user.is_authenticated:
+        fav_ids = set(
+            Favorite.objects.filter(user=request.user)
+            .values_list('parking__pkplcId', flat=True)
+        )
+
     availability_dict = {
         a.pkplcNm: {
             "available": int(a.avblPklotCnt),
@@ -18,37 +30,30 @@ def map_view(request):
         for a in availability
     }
 
-    # 템플릿에서 바로 사용 가능한 기본 + 가용 데이터 포함 리스트
     basics_list = []
-
     for b in basics:
         name = b.pkplcNm
         pkplc_id = b.pkplcId
         basic_info = {
-            "id": pkplc_id,
+            "id": pkplc_id,  # ← JS에서 즐겨찾기 토글 시 사용 (data-pk로 전달)
             "name": name,
             "lat": float(b.latCrdn),
             "lng": float(b.lonCrdn),
             "total": int(b.pklotCnt) if b.pklotCnt else 0,
             "address": b.roadNmAddr,
-
-            # 운영시간
             "weekdayTime": f"{b.wkdayOprtStartTime} ~ {b.wkdayOprtEndTime}",
             "saturdayTime": f"{b.satOprtStartTime} ~ {b.satOprtEndTime}",
             "holidayTime": f"{b.hldyOprtStartTime} ~ {b.hldyOprtEndTime}",
-
-            # 요금
             "basicRate": f"{b.parkingBscFare}원 / {b.parkingBscTime}분",
             "addRate": f"{b.addUnitFare}원 / {b.addUnitTime}분",
-
-            # 가용 정보
             "avblPklotCnt": availability_dict.get(name, {}).get("available", "정보 없음"),
-            "ocrnDt": availability_dict.get(name, {}).get("time", "-")
+            "ocrnDt": availability_dict.get(name, {}).get("time", "-"),
+
+            "isFavorite": pkplc_id in fav_ids,
         }
         basics_list.append(basic_info)
 
-
-        basics_list.sort(key=lambda b: b["name"])
+    basics_list.sort(key=lambda b: b["name"])
 
     import json
     basics_json = json.dumps(basics_list)
@@ -72,9 +77,45 @@ def map_view(request):
     ])
 
     context = {
-        "basics": basics_list,  # 여기에 기본 + 가용 정보 포함됨
+        "basics": basics_list,
         "basics_json": basics_json,
         "cctv_json": cctv_json,
         "availability_json": availability_json,
     }
     return render(request, "main.html", context)
+
+
+@require_POST
+@login_required
+def toggle_favorite(request, pkplcId: str):
+    try:
+        parking = ParkingBasic.objects.get(pkplcId=pkplcId)
+    except ParkingBasic.DoesNotExist:
+        return JsonResponse({"ok": False, "error": "NOT_FOUND"}, status=404)
+
+    fav, created = Favorite.objects.get_or_create(user=request.user, parking=parking)
+    if created:
+        return JsonResponse({"ok": True, "status": "added"})
+    else:
+        fav.delete()
+        return JsonResponse({"ok": True, "status": "removed"})
+
+
+@login_required
+def favorite_ids(request):
+    ids = list(
+        Favorite.objects.filter(user=request.user)
+        .select_related("parking")
+        .values_list("parking__pkplcId", flat=True)
+    )
+    return JsonResponse({"ok": True, "ids": ids, "csrfToken": get_token(request)})
+
+@login_required
+def favorite_list(request):
+    qs = (Favorite.objects
+          .filter(user=request.user)
+          .select_related('parking')
+          .order_by('-created_at'))
+    return render(request, "favorite_list.html", {
+        "favorites": qs,
+    })
