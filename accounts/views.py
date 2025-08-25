@@ -1,8 +1,10 @@
 from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import get_user_model
 from django.db.models import Q
+from .models import Suggestion, SuggestionReply
 
 User = get_user_model()
 
@@ -37,10 +39,10 @@ def signup(request):
 
     return render(request, "accounts/signup.html")
 
+@login_required(login_url="/accounts/login/")
 def profile(request):
     return render(request, "accounts/profile.html")
 
-@login_required
 def profile_update(request):
     if request.method == "POST":
         email = request.POST.get("email")
@@ -63,7 +65,7 @@ def profile_update(request):
 
     return render(request, "/")
 
-
+@staff_member_required(login_url="/accounts/login/")
 def admin_page(request):
     query = request.GET.get("q", "")
 
@@ -76,3 +78,73 @@ def admin_page(request):
             Q(email__icontains=query)
         )
     return render(request, "accounts/admin_page.html", {"users": users, "query" :query } )
+
+@login_required(login_url="/accounts/login/")
+def suggestion_create(request):
+    if request.method == "POST" :
+        title = request.POST.get("title")
+        content = request.POST.get("content")
+        Suggestion.objects.create(
+            title=title,
+            content=content,
+            author=request.user
+        )
+
+        return redirect("suggestion_list")
+    return render(request, "accounts/suggestion_form.html")
+
+@login_required(login_url="/accounts/login/")
+def suggestion_list(request):
+    if request.user.is_staff:
+
+        suggestions = Suggestion.objects.select_related("reply").all().order_by("-created_at")
+    else:
+
+        suggestions = Suggestion.objects.select_related("reply").filter(author=request.user).order_by("-created_at")
+
+    return render(request, "accounts/suggestion_list.html", {"suggestions": suggestions})
+
+
+@login_required(login_url="/accounts/login/")
+def suggestion_detail(request, pk):
+    suggestion = get_object_or_404(Suggestion, pk=pk)
+
+    if suggestion.author != request.user and not request.user.is_staff:
+        return redirect("accounts/suggestion_list")
+    return render(request, "accounts/suggestion_detail.html", {"suggestion": suggestion})
+
+@login_required(login_url="/accounts/login/")
+def suggestion_reply(request, pk):
+    suggestion = get_object_or_404(Suggestion, pk=pk)
+
+    if request.user.is_staff:
+        if request.method == "POST":
+            reply_content = request.POST.get("content")
+
+            SuggestionReply.objects.create(
+                suggestion=suggestion,
+                content=reply_content,
+                admin=request.user
+            )
+
+            return redirect("suggestion_detail", pk=pk)
+
+
+        return render(request, "accounts/suggestion_detail.html", {"suggestion": suggestion})
+
+    else:
+        return redirect("suggestion_detail", pk=pk)
+
+@login_required(login_url="/accounts/login/")
+def suggestion_reply_delete(request, reply_id):
+    reply = get_object_or_404(SuggestionReply, id=reply_id)
+
+    if not request.user.is_staff:  # 관리자가 아닌 경우 차단
+        return redirect("suggestion_detail", pk=reply.suggestion.pk)
+
+    if request.method == "POST":
+        reply.delete()
+        return redirect("suggestion_detail", pk=reply.suggestion.pk)
+
+
+

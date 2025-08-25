@@ -9,4 +9,10 @@ urlpatterns = [
     path("profile/", views.profile, name="profile"),
     path("profile/update/", views.profile_update, name="update"),
     path("admin_page/", views.admin_page, name="admin_page"),
+    path('suggestions/', views.suggestion_list, name='suggestion_list'),
+    path('suggestions/create/', views.suggestion_create, name='suggestion_create'),
+    path('suggestions/<int:pk>/', views.suggestion_detail, name='suggestion_detail'),
+    path('suggestions/<int:pk>/reply/', views.suggestion_reply, name='suggestion_reply'),
+    path("suggestion/reply/delete/<int:reply_id>/", views.suggestion_reply_delete, name="suggestion_reply_delete"),
+
 ]
