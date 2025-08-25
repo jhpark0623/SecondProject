@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %} 유저 관리 페이지 {% endblock %}
+
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin_page.css' %}">
+{% endblock %}
+
+{% block content %}
+
+
+<div class="search-wrapper">
+    <form method="get" class="search-form">
+     <input type="text" name="q" value="{{ query }}" placeholder="이름, 아이디, 이메일 검색">
+    <button class="btn11" type="submit">검색</button>
+  </form>
+</div>
+
+ <div class="table">
+
+
+    <div class="row header blue">
+      <div class="cell">
+        ID
+      </div>
+      <div class="cell">
+        이름
+      </div>
+      <div class="cell">
+        Email
+      </div>
+      <div class="cell">
+        전화번호
+      </div>
+      <div class="cell">
+        가입일
+      </div>
+      <div class="cell">
+          권한
+      </div>
+    </div>
+
+     {% for user in users %}
+    <div class="row">
+      <div class="cell">
+        {{ user.username }}
+      </div>
+      <div class="cell">
+        {{ user.name }}
+      </div>
+      <div class="cell">
+        {{ user.email }}
+      </div>
+      <div class="cell">
+        {{ user.phone }}
+      </div>
+      <div class="cell">
+        {{ user.date_joined|date:"Y-m-d H:i" }}
+      </div>
+      <div class="cell">
+          {% if user.is_staff %}
+            관리자
+          {% else %}
+            일반유저
+          {% endif %}
+      </div>
+    </div>
+     {% empty %}
+     <div class="row">
+        <div class="cell" colspan="5">
+            등록된 사용자가 없습니다
+          </div>
+     </div>
+     {% endfor %}
+
+
+
+ </div>
+
+
+
+
+{% endblock %}

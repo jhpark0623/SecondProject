@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %} 건의사항 목록 {% endblock %}
+
+{% block content %}
+
+<style>
+    .new-su{
+        color: darkgreen;
+    }
+
+</style>
+<div class="container mt-5" style="max-width: 800px;">
+    <h2>건의사항 목록</h2>
+    <a href="{% url 'suggestion_create' %}" class="btn btn-primary mb-3">건의하기</a>
+
+    {% if suggestions %}
+        <ul class="list-group">
+            {% for suggestion in suggestions %}
+
+                {% if not suggestion.reply %}
+                    <li class="list-group-item">
+                        <a class="new-su" href="{% url 'suggestion_detail' suggestion.id %}">
+                            {{ suggestion.title }}
+                        </a>
+                        <small class="text-muted">
+                            (작성일: {{ suggestion.created_at|date:"Y-m-d H:i" }})
+                        </small>
+                    </li>
+                {% else %}
+                    <li class="list-group-item">
+                        <a href="{% url 'suggestion_detail' suggestion.id %}">
+                            {{ suggestion.title }}
+                        </a>
+                        <small class="text-muted">
+                            (작성일: {{ suggestion.created_at|date:"Y-m-d H:i" }})  << 답변완료
+                        </small>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>등록된 건의사항이 없습니다.</p>
+    {% endif %}
+</div>
+{% endblock %}

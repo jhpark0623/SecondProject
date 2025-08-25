@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %} 건의사항 상세보기 {% endblock %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 800px;">
+    <h2>{{ suggestion.title }}</h2>
+    <p>{{ suggestion.content }}</p>
+    <small class="text-muted">작성자: {{ suggestion.author.username }} | {{ suggestion.created_at|date:"Y-m-d H:i" }}</small>
+    <hr>
+
+    <h4>관리자 답변</h4>
+    {% if suggestion.reply %}
+        <div class="list-group-item">
+            <p>{{ suggestion.reply.content }}</p>
+            <small class="text-muted">
+                관리자: {{ suggestion.reply.admin.username }} | {{ suggestion.reply.created_at|date:"Y-m-d H:i" }}
+            </small>
+
+            {% if user.is_staff %}
+                <!-- 답변 삭제 버튼 -->
+                <form method="post" action="{% url 'suggestion_reply_delete' suggestion.reply.id %}"
+                      style="display:inline;"
+                      onsubmit="return confirm('정말 삭제하시겠습니까?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-danger">삭제</button>
+                </form>
+            {% endif %}
+        </div>
+    {% else %}
+        <p>아직 답변이 없습니다.</p>
+    {% endif %}
+
+    {% if user.is_staff and not suggestion.reply %}
+        <!-- 답변 작성 폼 (답변이 없을 때만 보이게) -->
+        <form method="post" action="{% url 'suggestion_reply' suggestion.id %}" class="mt-3">
+            {% csrf_token %}
+            <textarea name="content" class="form-control mb-2" rows="3" placeholder="답변을 입력하세요"></textarea>
+            <button type="submit" class="btn btn-primary">답변 등록</button>
+        </form>
+    {% endif %}
+
+    <div class="mt-3">
+        <a href="{% url 'suggestion_list' %}" class="btn btn-secondary">목록으로</a>
+    </div>
+</div>
+{% endblock %}
