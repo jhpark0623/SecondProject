@@ -59,8 +59,9 @@
                     </li><br>
                     <li><a class="nav-link" href="{% url 'profile' %}">{{ user.name }}님 정보</a></li><br>
                     <li>
-                        <button class="btn btn-link nav-link">즐겨찾기</button>
-                    </li><br>
+                      <a class="nav-link" href="{% url 'favorite_list' %}">즐겨찾기</a>
+                    </li>
+                    <br>
                     <li><a class="nav-link" href="{% url 'suggestion_list' %}">건의 게시판</a></li><br>
 
                     {% if user.is_staff %}
