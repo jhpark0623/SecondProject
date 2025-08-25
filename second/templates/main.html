@@ -28,7 +28,7 @@
   .map-area {
     flex-grow: 1;
     height: 100%;
-    position: relative; /* 버튼 위치 절대 지정용 */
+    position: relative;
   }
 
   .list-group-item {
@@ -119,126 +119,214 @@
 <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=863559e6bebce003983f160e07c1ac27&libraries=services"></script>
 
 <script>
-    const mapContainer = document.getElementById('map');
-    const fixedLat = 37.6822186;
-    const fixedLng = 126.769498;
-    let currentMarker = null;
-    let currentCircle = null;
+  // ================== 로그인 여부 플래그 ==================
+  const IS_AUTHENTICATED = {{ request.user.is_authenticated|yesno:"true,false" }};
 
-    const locPosition = new kakao.maps.LatLng(fixedLat, fixedLng);
-    const mapOption = { center: locPosition, level: 4 };
-    const map = new kakao.maps.Map(mapContainer, mapOption);
+  // ================== 즐겨찾기 전역 관리 ==================
+  let FAVORITE_SET = new Set();
+  let CSRF_TOKEN = null;
 
-    map.setZoomable(false);
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
 
-
-    const basics = JSON.parse('{{ basics_json|escapejs }}');
-    const cameras = JSON.parse('{{ cctv_json|escapejs }}');
-    const availability = JSON.parse('{{ availability_json|escapejs }}');
-
-    const infowindow = new kakao.maps.InfoWindow({});
-    const markerMap = {};
-
-    // 주차장 마커용 이미지 생성 (예: parking_marker.png)
-    const parkingMarkerImage = new kakao.maps.MarkerImage(
-      "{% static 'imgs/parking-area.png' %}",
-      new kakao.maps.Size(35, 35), // 아이콘 크기 조절
-      {
-        offset: new kakao.maps.Point(20, 40) // 마커의 기준점을 아이콘 아래 중앙으로 지정
+  async function loadFavorites() {
+    if (!IS_AUTHENTICATED) {
+      FAVORITE_SET = new Set();
+      return;
+    }
+    try {
+      const res = await fetch('/favorites/ids/', { credentials: 'same-origin' });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.ok) {
+        // 🔧 ID를 문자열로 통일
+        FAVORITE_SET = new Set((data.ids || []).map(String));
+        CSRF_TOKEN = data.csrfToken || getCookie('csrftoken');
       }
-    );
+    } catch (e) {
+      console.error(e);
+    }
+  }
 
-    // 초기 "내위치" 표시 (고정된 위치)
-    currentMarker = new kakao.maps.Marker({
-        position: locPosition,
-        map: map,
-        title: '내위치'
-    });
+  function setStarIcon(btnEl) {
+    const pk = btnEl?.dataset?.pk;
+    if (!pk) return;
+    const icon = btnEl.querySelector('.star-icon');
+    if (!icon) return;
+    if (!IS_AUTHENTICATED) {
+      icon.textContent = '☆';
+      return;
+    }
+    // 🔧 문자열 비교
+    icon.textContent = FAVORITE_SET.has(String(pk)) ? '⭐' : '☆';
+  }
 
-    currentCircle = new kakao.maps.Circle({
-        center: locPosition,
-        radius: 500,
-        strokeWeight: 2,
-        strokeColor: '#FF0000',
-        strokeOpacity: 0.7,
-        fillColor: '#FF0000',
-        fillOpacity: 0.1,
-        map: map
-    });
+  // 클릭 시 토글 (비로그인: 얼럿만)
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.favorite-btn');
+    if (!btn) return;
 
-    // 주차장 마커 생성
-    basics.forEach(b => {
-        const marker = new kakao.maps.Marker({
-            position: new kakao.maps.LatLng(b.lat, b.lng),
-            title: b.name,
-            map: map,
-            image: parkingMarkerImage
-        });
-        marker.isOpen = false;
-        markerMap[b.name] = marker;
+    if (!IS_AUTHENTICATED) {
+      alert('로그인 해주세요.');
+      return;
+    }
 
-        kakao.maps.event.addListener(marker, 'click', () => {
-            toggleInfowindow(marker, b.name);
-        });
-    });
+    const pk = btn.dataset.pk;
+    const icon = btn.querySelector('.star-icon');
 
-    // CCTV 마커 이미지
-    const cameraMarkerImage = new kakao.maps.MarkerImage(
-    "{% static 'imgs/security-camera.png' %}",  // 경로 수정
-    new kakao.maps.Size(30, 30)  // 이미지 크기 조절 (원하는 크기로 수정 가능)
-    );
+    try {
+      const res = await fetch(`/favorites/${pk}/toggle/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': CSRF_TOKEN || getCookie('csrftoken'),
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        credentials: 'same-origin'
+      });
 
-    cameras.forEach(c => {
-        const marker = new kakao.maps.Marker({
-            position: new kakao.maps.LatLng(c.lat, c.lng),
-            title: c.name,
-            map: map,
-            image: cameraMarkerImage
-        });
+      if (res.status === 403) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+      const data = await res.json();
+      if (!data.ok) {
+        alert('처리 중 오류가 발생했습니다.');
+        return;
+      }
 
-        marker.isOpen = false;
+      if (data.status === 'added') {
+        FAVORITE_SET.add(String(pk));     // 🔧 문자열로
+        if (icon) icon.textContent = '⭐';
+      } else {
+        FAVORITE_SET.delete(String(pk));  // 🔧 문자열로
+        if (icon) icon.textContent = '☆';
+      }
+    } catch (err) {
+      console.error(err);
+      alert('네트워크 오류가 발생했습니다.');
+    }
+  });
 
-        kakao.maps.event.addListener(marker, 'click', () => {
-            if (marker.isOpen) {
-                infowindow.close();
-                marker.isOpen = false;
-            } else {
-                infowindow.close();
-                infowindow.setContent(`
-                    <div class="card" style="width: 18rem; margin:0;">
-                        <div class="card-body">
-                            <h5 class="card-title">${c.name}</h5>
-                        </div>
-                    </div>
-                `);
-                infowindow.open(map, marker);
-                marker.isOpen = true;
-            }
-        });
-    });
+  // ================== 지도 로직 ==================
+  const mapContainer = document.getElementById('map');
+  const fixedLat = 37.6822186;
+  const fixedLng = 126.769498;
+  let currentMarker = null;
+  let currentCircle = null;
 
-    availability.forEach(a => {
-        const b = basics.find(b => b.name === a.name);
-        if (!b) return;
+  const locPosition = new kakao.maps.LatLng(fixedLat, fixedLng);
+  const mapOption = { center: locPosition, level: 4 };
+  const map = new kakao.maps.Map(mapContainer, mapOption);
 
-        const marker = new kakao.maps.Marker({
+  map.setZoomable(false);
+
+  const basics = JSON.parse('{{ basics_json|escapejs }}');
+  const cameras = JSON.parse('{{ cctv_json|escapejs }}');
+  const availability = JSON.parse('{{ availability_json|escapejs }}');
+
+  const infowindow = new kakao.maps.InfoWindow({});
+  const markerMap = {};   // name -> marker
+  const markerById = {};  // id   -> marker
+  const basicsById = {};  // id   -> basic info
+
+  const parkingMarkerImage = new kakao.maps.MarkerImage(
+    "{% static 'imgs/parking-area.png' %}",
+    new kakao.maps.Size(35, 35),
+    { offset: new kakao.maps.Point(20, 40) }
+  );
+
+  currentMarker = new kakao.maps.Marker({
+      position: locPosition,
+      map: map,
+      title: '내위치'
+  });
+
+  currentCircle = new kakao.maps.Circle({
+      center: locPosition,
+      radius: 500,
+      strokeWeight: 2,
+      strokeColor: '#FF0000',
+      strokeOpacity: 0.7,
+      fillColor: '#FF0000',
+      fillOpacity: 0.1,
+      map: map
+  });
+
+  basics.forEach(b => {
+    const idStr = String(b.id);            // 🔧 문자열 키
+    basicsById[idStr] = b;
+    const marker = new kakao.maps.Marker({
         position: new kakao.maps.LatLng(b.lat, b.lng),
         title: b.name,
         map: map,
         image: parkingMarkerImage
     });
+    marker.isOpen = false;
+    markerMap[b.name] = marker;
+    markerById[idStr] = marker;            // 🔧 문자열 키
 
-
-        marker.isOpen = false;
-
-        kakao.maps.event.addListener(marker, 'click', () => {
-            toggleInfowindow(marker, a.name);
-        });
-
-        markerMap[a.name] = marker;
+    kakao.maps.event.addListener(marker, 'click', () => {
+        toggleInfowindow(marker, b.name);
     });
+  });
 
-    function toggleInfowindow(marker, name) {
+  const cameraMarkerImage = new kakao.maps.MarkerImage(
+    "{% static 'imgs/security-camera.png' %}",
+    new kakao.maps.Size(30, 30)
+  );
+
+  cameras.forEach(c => {
+      const marker = new kakao.maps.Marker({
+          position: new kakao.maps.LatLng(c.lat, c.lng),
+          title: c.name,
+          map: map,
+          image: cameraMarkerImage
+      });
+
+      marker.isOpen = false;
+
+      kakao.maps.event.addListener(marker, 'click', () => {
+          if (marker.isOpen) {
+              infowindow.close();
+              marker.isOpen = false;
+          } else {
+              infowindow.close();
+              infowindow.setContent(`
+                  <div class="card" style="width: 18rem; margin:0;">
+                      <div class="card-body">
+                          <h5 class="card-title">${c.name}</h5>
+                      </div>
+                  </div>
+              `);
+              infowindow.open(map, marker);
+              marker.isOpen = true;
+          }
+      });
+  });
+
+  availability.forEach(a => {
+      const b = basics.find(b => b.name === a.name);
+      if (!b) return;
+
+      const marker = new kakao.maps.Marker({
+        position: new kakao.maps.LatLng(b.lat, b.lng),
+        title: b.name,
+        map: map,
+        image: parkingMarkerImage
+      });
+
+      marker.isOpen = false;
+      kakao.maps.event.addListener(marker, 'click', () => {
+          toggleInfowindow(marker, a.name);
+      });
+
+      markerMap[a.name] = marker;
+  });
+
+  function toggleInfowindow(marker, name) {
     const b = basics.find(b => b.name === name);
     if (!b) return;
 
@@ -248,14 +336,23 @@
     } else {
         infowindow.close();
 
+        // ✅ 항상 최신 클라이언트 상태(FAVORITE_SET) 기준으로 별 표시
+        const starChar = IS_AUTHENTICATED
+          ? (FAVORITE_SET.has(String(b.id)) ? '⭐' : '☆')
+          : '☆';
+
         infowindow.setContent(`
             <div class="card shadow-sm" style="width: 300px; font-size: 14px; overflow-x: hidden;">
-                <div class="card-header bg-primary text-white fw-bold text-center">
-                    ${b.name}
+                <div class="card-header bg-primary text-white fw-bold">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span>${b.name}</span>
+                      <button class="btn btn-sm btn-light favorite-btn" data-pk="${b.id}" title="즐겨찾기" style="line-height:1">
+                        <span class="star-icon">${starChar}</span>
+                      </button>
+                  </div>
                 </div>
 
                 <div class="card-body p-2">
-                    <!-- 면수 정보 -->
                     <div class="row gx-0 text-center mb-2">
                         <div class="col-6 border-end">
                             <div class="fw-bold">총 면수</div>
@@ -269,7 +366,6 @@
 
                     <hr>
 
-                    <!-- 표 정보 -->
                     <table class="table table-sm mb-0">
                         <tbody>
                             <tr>
@@ -299,88 +395,120 @@
 
         infowindow.open(map, marker);
         marker.isOpen = true;
-    }
-}
 
-
-
-    document.querySelectorAll('.parking-item').forEach(item => {
-        item.addEventListener('click', () => {
-            const name = item.getAttribute('data-name');
-            const marker = markerMap[name];
-            if (marker) {
-                map.panTo(marker.getPosition());
-                toggleInfowindow(marker, name);
-            }
+        kakao.maps.event.addListener(infowindow, 'domready', function() {
+          const btn = document.querySelector('.favorite-btn[data-pk="' + b.id + '"]');
+          if (btn) setStarIcon(btn);
         });
-    });
-
-    function getDistance(lat1, lng1, lat2, lng2) {
-        const R = 6371000;
-        const toRad = x => x * Math.PI / 180;
-        const dLat = toRad(lat2 - lat1);
-        const dLng = toRad(lng2 - lng1);
-        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                  Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-                  Math.sin(dLng / 2) * Math.sin(dLng / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
     }
+  }
 
-    // ✅ 현위치로 이동 함수
-    function moveToCurrentLocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          const newPosition = new kakao.maps.LatLng(lat, lng);
-
-          map.setCenter(newPosition);
-
-          // 기존 마커/원 제거
-          if (currentMarker) currentMarker.setMap(null);
-          if (currentCircle) currentCircle.setMap(null);
-
-          // 새 마커/원 추가
-          currentMarker = new kakao.maps.Marker({
-            position: newPosition,
-            map: map,
-            title: '현재 위치'
-          });
-
-          currentCircle = new kakao.maps.Circle({
-            center: newPosition,
-            radius: 500,
-            strokeWeight: 2,
-            strokeColor: '#FF0000',
-            strokeOpacity: 0.7,
-            fillColor: '#FF0000',
-            fillOpacity: 0.1,
-            map: map
-          });
-
-          // CCTV 거리 확인
-          let cctvNear = false;
-          for (let c of cameras) {
-            const distance = getDistance(lat, lng, c.lat, c.lng);
-            if (distance <= 200) {
-              cctvNear = true;
-              break;
-            }
+  document.querySelectorAll('.parking-item').forEach(item => {
+      item.addEventListener('click', () => {
+          const name = item.getAttribute('data-name');
+          const marker = markerMap[name];
+          if (marker) {
+              map.panTo(marker.getPosition());
+              toggleInfowindow(marker, name);
           }
+      });
+  });
 
-          if (cctvNear) {
-            alert("⚠️ 주의: 현재 위치 기준 200m 이내에 CCTV가 있습니다.");
-          }
+  // ==== URL 파라미터 포커스 (즐겨찾기 로드 후 실행) ====
+  function focusAndOpenById(id) {
+    const key = String(id);           // 🔧 문자열 키
+    const b = basicsById[key], m = markerById[key];
+    if (!b || !m) return false;
+    map.panTo(m.getPosition());
+    toggleInfowindow(m, b.name);
+    return true;
+  }
+  function focusAndOpenByName(name) {
+    const m = markerMap[name];
+    if (!m) return false;
+    map.panTo(m.getPosition());
+    toggleInfowindow(m, name);
+    return true;
+  }
+  function initFocusFromUrl() {
+    const params = new URLSearchParams(location.search);
+    const focusId = params.get('focus_id');
+    const focusName = params.get('focus');
+    if (focusId) {
+      if (!focusAndOpenById(focusId) && focusName) focusAndOpenByName(focusName);
+    } else if (focusName) {
+      focusAndOpenByName(focusName);
+    }
+  }
 
-        }, function(error) {
-          alert("📵 위치 정보를 가져올 수 없습니다.");
-          console.error(error);
+  function getDistance(lat1, lng1, lat2, lng2) {
+      const R = 6371000;
+      const toRad = x => x * Math.PI / 180;
+      const dLat = toRad(lat2 - lat1);
+      const dLng = toRad(lng2 - lng1);
+      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                Math.sin(dLng / 2) * Math.sin(dLng / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+  }
+
+  function moveToCurrentLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function(position) {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const newPosition = new kakao.maps.LatLng(lat, lng);
+
+        map.setCenter(newPosition);
+
+        if (currentMarker) currentMarker.setMap(null);
+        if (currentCircle) currentCircle.setMap(null);
+
+        currentMarker = new kakao.maps.Marker({
+          position: newPosition,
+          map: map,
+          title: '현재 위치'
         });
-      } else {
-        alert("🚫 위치 정보 사용이 불가능한 브라우저입니다.");
-      }
+
+        currentCircle = new kakao.maps.Circle({
+          center: newPosition,
+          radius: 500,
+          strokeWeight: 2,
+          strokeColor: '#FF0000',
+          strokeOpacity: 0.7,
+          fillColor: '#FF0000',
+          fillOpacity: 0.1,
+          map: map
+        });
+
+        let cctvNear = false;
+        for (let c of cameras) {
+          const distance = getDistance(lat, lng, c.lat, c.lng);
+          if (distance <= 200) {
+            cctvNear = true;
+            break;
+          }
+        }
+
+        if (cctvNear) {
+          alert("⚠️ 주의: 현재 위치 기준 200m 이내에 CCTV가 있습니다.");
+        }
+
+      }, function(error) {
+        alert("📵 위치 정보를 가져올 수 없습니다.");
+        console.error(error);
+      });
+    } else {
+      alert("🚫 위치 정보 사용이 불가능한 브라우저입니다.");
     }
+  }
+
+  // ✅ 즐겨찾기 로드가 끝난 뒤 포커스 실행
+  window.addEventListener('DOMContentLoaded', async () => {
+    await loadFavorites();
+    initFocusFromUrl();
+  });
 </script>
 
 {% endblock %}
