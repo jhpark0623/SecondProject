@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import get_user_model
 from django.db.models import Q
@@ -76,8 +77,25 @@ def admin_page(request):
             Q(username__icontains=query) |
             Q(name__icontains=query) |
             Q(email__icontains=query)
-        )
-    return render(request, "accounts/admin_page.html", {"users": users, "query" :query } )
+       )
+    # ✅ 페이지네이션 추가
+    paginator = Paginator(users, 10)  # 페이지당 10명
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    # ✅ 페이지 번호 범위 (현재 페이지 ±2)
+    current_page = page_obj.number
+    total_pages = paginator.num_pages
+    start_page = max(current_page - 2, 1)
+    end_page = min(current_page + 2, total_pages)
+    page_range = range(start_page, end_page + 1)
+
+    return render(request, "accounts/admin_page.html", {
+        "users": page_obj,     # 목록
+        "page_obj": page_obj,  # 페이지네이션 UI용
+        "page_range": page_range,
+        "query": query,
+    })
 
 @login_required(login_url="/accounts/login/")
 def suggestion_create(request):
@@ -95,6 +113,9 @@ def suggestion_create(request):
 
 @login_required(login_url="/accounts/login/")
 def suggestion_list(request):
+    search = request.GET.get("search", "")
+
+
     if request.user.is_staff:
 
         suggestions = Suggestion.objects.select_related("reply").all().order_by("-created_at")
@@ -102,7 +123,33 @@ def suggestion_list(request):
 
         suggestions = Suggestion.objects.select_related("reply").filter(author=request.user).order_by("-created_at")
 
-    return render(request, "accounts/suggestion_list.html", {"suggestions": suggestions})
+    if search:
+        suggestions = suggestions.filter(
+            Q(title__icontains=search)  |
+            Q(content__icontains=search) |
+            Q(author__username__icontains=search)
+
+        )
+
+    # 페이지네이션 (한 페이지당 10개)
+    paginator = Paginator(suggestions, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    # ✅ 페이지 범위 커스터마이즈 (현재 페이지 기준 ±2)
+    current_page = page_obj.number
+    total_pages = paginator.num_pages
+
+    start_page = max(current_page - 2, 1)
+    end_page = min(current_page + 2, total_pages)
+    page_range = range(start_page, end_page + 1)
+
+    return render(request, "accounts/suggestion_list.html", {
+        "suggestions": page_obj,  # 목록
+        "page_obj": page_obj,  # 기본 page_obj
+        "page_range": page_range,  # 우리가 커스텀한 범위
+        "search": search,
+    })
 
 
 @login_required(login_url="/accounts/login/")
