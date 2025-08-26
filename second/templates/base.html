@@ -51,25 +51,28 @@
         <div class="offcanvas-body">
             <ul class="list-unstyled menu">
                 {% if user.is_authenticated %}
-                    <li><span class="nav-link">{{ user.username }}님 안녕하세요 </span></li><br>
-                    <li><form method="post" action="{% url 'logout' %}">
+
+                    {% if user.is_staff %}
+                        <li><span class="nav-link ad">관리자님 안녕하세요 </span></li><br>
+                        <li><a class="nav-link " href="{% url 'admin_page' %}" >관리자 페이지</a></li><br>
+                    {% else %}
+                        <li><span class="nav-link">{{ user.username }}님 안녕하세요 </span></li><br>
+                        <li><a class="nav-link" href="{% url 'profile' %}">마이페이지</a></li><br>
+                        <li>
+                            <a class="nav-link" href="{% url 'favorite_list' %}">즐겨찾기</a>
+                        </li>
+                    {% endif %}
+                <li><a class="nav-link" href="{% url 'suggestion_list' %}">건의 게시판</a></li><br>
+                <li><form method="post" action="{% url 'logout' %}">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-link nav-link">로그아웃</button>
                         </form>
-                    </li><br>
-                    <li><a class="nav-link" href="{% url 'profile' %}">{{ user.name }}님 정보</a></li><br>
-                    <li>
-                        <button class="btn btn-link nav-link">즐겨찾기</button>
-                    </li><br>
-                    <li><a class="nav-link" href="{% url 'suggestion_list' %}">건의 게시판</a></li><br>
+                </li><br>
 
-                    {% if user.is_staff %}
-                        <li><a class="nav-link ad" href="{% url 'admin_page' %}" >관리자 페이지</a></li>
-                    {% endif %}
                 {% else %}
                     <li><a class="nav-link" href="{% url 'login' %}">로그인</a></li><br>
                     <li><a class="nav-link" href="{% url 'signup'%}">회원가입</a></li><br>
-                    <li><a class="nav-link" href="{% url 'login' %}">건의 게시판</a></li>
+
                 {% endif %}
             </ul>
         </div>
