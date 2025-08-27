@@ -10,9 +10,9 @@
 {% block content %}
 
 
-<div class="container mt-5" style="max-width: 800px;">
+<div class="container mt-5" style="max-width: 55%;">
     <h2>건의사항 목록</h2>
-    <a href="{% url 'suggestion_create' %}" class="btn btn-primary mb-3">건의하기</a>
+
     <div class="search-wrapper">
         <form method="get" class="search-form">
             <input name="search" type="text" value="{{ search }}" placeholder="아이디, 제목, 내용 검색">
@@ -39,7 +39,10 @@
     {% else %}
         <p>등록된 건의사항이 없습니다.</p>
     {% endif %}
-
+    <br>
+    <div class="text-end">
+        <a href="{% url 'suggestion_create' %}" class="btn btn-primary mb-3" >건의하기</a>
+    </div>
     <br>
     <nav aria-label="Page navigation">
       <ul class="pagination justify-content-center">

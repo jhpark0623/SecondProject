@@ -17,16 +17,16 @@ body {
 }
 
 
-.table {
-  margin: 0 auto;      /* 위 0px, 아래 자동 */
-  margin-top: 100px;
-  width: 60%;
+#table {
+  margin: 20px auto 0;
+  width: 55%;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
   display: table;
+    background-color: black;
 }
 
 @media screen and (max-width: 580px) {
-  .table {
+  #table {
     display: block;
   }
 }
