@@ -76,6 +76,15 @@ def map_view(request):
         for a in availability
     ])
 
+    # 자동완성에 쓸 이름 리스트 생성 (중복 제거)
+    autocomplete_names = list(set(
+        [b["name"] for b in basics_list] +
+        [c["name"] for c in cctvList]
+    ))
+    autocomplete_names.sort()
+
+    autocomplete_json = json.dumps(autocomplete_names)
+
     context = {
         "basics": basics_list,
         "basics_json": basics_json,
