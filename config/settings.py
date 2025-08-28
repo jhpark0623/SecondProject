@@ -135,3 +135,13 @@ LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
 
+# 세션 유지시간
+SESSION_COOKIE_AGE = 1500
+
+# 활동 있으면 시간 초기화
+SESSION_SAVE_EVERY_REQUEST = True
+
+
+#브라우저 종료시 로그아웃
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+

@@ -11,119 +11,126 @@
 
 {% block content %}
 
-<div class="container mt-5">
-    <h2>유저 관리 페이지</h2>
-</div>
-<div class="search-wrapper">
-    <form method="get" class="search-form">
-        <input type="text" name="q" value="{{ query }}" placeholder="이름, 아이디, 이메일 검색">
-        <button class="btn11" type="submit">검색</button>
-    </form>
-</div>
 
-<div id="table" >
-
-
-    <div class="row header blue">
-        <div class="cell">
-            ID
-        </div>
-        <div class="cell">
-            이름
-        </div>
-        <div class="cell">
-            Email
-        </div>
-        <div class="cell">
-            전화번호
-        </div>
-        <div class="cell">
-            가입일
-        </div>
-        <div class="cell">
-            권한
-        </div>
+<div class="as">
+    <div class="container mt-5">
+        <h2>유저 관리 페이지</h2>
+    </div>
+    <div class="search-wrapper">
+        <form method="get" class="search-form">
+            <input type="text" name="q" value="{{ query }}" placeholder="이름, 아이디, 이메일 검색">
+            <button class="btn11" type="submit">검색</button>
+        </form>
     </div>
 
-    {% for user in users %}
-    <div class="row">
-        <div class="cell">
-            <a href="{% url 'profile_admin' user.id %}">{{ user.username }}</a>
-        </div>
-        <div class="cell">
-            {{ user.name }}
-        </div>
-        <div class="cell">
-            {{ user.email }}
-        </div>
-        <div class="cell">
-            {{ user.phone }}
-        </div>
-        <div class="cell">
-            {{ user.date_joined|date:"Y-m-d H:i" }}
-        </div>
-        <div class="cell">
-            {% if user.is_staff %}
-            관리자
-            {% else %}
-            일반유저
-            {% endif %}
-        </div>
-    </div>
-    {% empty %}
-    <div class="row">
-        <div class="cell" colspan="5">
-            등록된 사용자가 없습니다
-        </div>
-    </div>
-
-    {% endfor %}
+    <div id="table" >
 
 
-</div>
-<br>
-<!-- ✅ 페이지네이션 -->
-<nav aria-label="Page navigation">
-    <ul class="pagination justify-content-center">
+        <div class="row header blue">
+            <div class="cell">
+                ID
+            </div>
+            <div class="cell">
+                이름
+            </div>
+            <div class="cell">
+                Email
+            </div>
+            <div class="cell">
+                전화번호
+            </div>
+            <div class="cell">
+                가입일
+            </div>
+            <div class="cell">
+                권한
+            </div>
+            <div class="cell" >
+                활성화
+            </div>
+        </div>
 
-        <!-- 처음으로 -->
-        {% if page_obj.has_previous %}
-        <li class="page-item">
-            <a class="page-link" href="?page=1&q={{ query }}"><<</a>
-        </li>
-        {% endif %}
+        {% for user in users %}
+        <div class="row" {% if not user.is_active %} style="background-color: orchid" {% endif %}>
+            <div class="cell">
+                <a href="{% url 'profile_admin' user.id %}">{{ user.username }}</a>
+            </div>
+            <div class="cell">
+                {{ user.name }}
+            </div>
+            <div class="cell">
+                {{ user.email }}
+            </div>
+            <div class="cell">
+                {{ user.phone }}
+            </div>
+            <div class="cell">
+                {{ user.date_joined|date:"Y-m-d H:i" }}
+            </div>
+            <div class="cell">
+                {% if user.is_staff %}
+                관리자
+                {% else %}
+                일반유저
+                {% endif %}
+            </div>
+            <div class="cell">{% if user.is_active %} O {% else %} X {% endif %} </div>
+        </div>
+        {% empty %}
+        <div class="row">
+            <div class="cell" colspan="5">
+                등록된 사용자가 없습니다
+            </div>
+        </div>
 
-        <!-- 이전 -->
-        {% if page_obj.has_previous %}
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}"><</a>
-        </li>
-        {% endif %}
-
-        <!-- 번호 범위 -->
-        {% for num in page_range %}
-        {% if page_obj.number == num %}
-        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-        {% else %}
-        <li class="page-item"><a class="page-link" href="?page={{ num }}&q={{ query }}">{{ num }}</a></li>
-        {% endif %}
         {% endfor %}
 
-        <!-- 다음 -->
-        {% if page_obj.has_next %}
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}">></a>
-        </li>
-        {% endif %}
 
-        <!-- 끝으로 -->
-        {% if page_obj.has_next %}
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&q={{ query }}">>></a>
-        </li>
-        {% endif %}
-    </ul>
-</nav>
+    </div>
+    <br>
+    <!-- ✅ 페이지네이션 -->
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+
+            <!-- 처음으로 -->
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1&q={{ query }}"><<</a>
+            </li>
+            {% endif %}
+
+            <!-- 이전 -->
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}"><</a>
+            </li>
+            {% endif %}
+
+            <!-- 번호 범위 -->
+            {% for num in page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% else %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}&q={{ query }}">{{ num }}</a></li>
+            {% endif %}
+            {% endfor %}
+
+            <!-- 다음 -->
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}">></a>
+            </li>
+            {% endif %}
+
+            <!-- 끝으로 -->
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&q={{ query }}">>></a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
 
 
 {% endblock %}
