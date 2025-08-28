@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import get_user_model
@@ -43,6 +43,12 @@ def signup(request):
 @login_required(login_url="/accounts/login/")
 def profile(request):
     return render(request, "accounts/profile.html")
+
+@user_passes_test(lambda u: u.is_staff, login_url="/accounts/login/")
+def profile_admin(request, user_id):
+    profile_user = get_object_or_404(User, id=user_id)
+    return render(request, "accounts/profile.html", {"profile_user": profile_user})
+
 
 def profile_update(request):
     if request.method == "POST":

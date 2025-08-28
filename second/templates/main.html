@@ -5,119 +5,121 @@
 
 <style>
     html, body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        overflow: hidden;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
     }
 
     *, *::before, *::after {
-        box-sizing: border-box;
+      box-sizing: border-box;
     }
 
     .full-height {
-        height: calc(100vh - 56px);
+      height: calc(100vh - 56px);
     }
 
     .sidebar {
-        width: 350px;
-        background-color: #f8f9fa;
-        overflow-y: auto;
+      width: 350px;
+      background-color: #f8f9fa;
+      overflow-y: auto;
     }
 
     .map-area {
-        flex-grow: 1;
-        height: 100%;
-        position: relative;
+      flex-grow: 1;
+      height: 100%;
+      position: relative;
     }
 
     .list-group-item {
-        margin: 0;
-        padding-left: 12px;
-        padding-right: 12px;
-        border-left: none;
-        border-right: none;
+      margin: 0;
+      padding-left: 12px;
+      padding-right: 12px;
+      border-left: none;
+      border-right: none;
     }
 
     .sidebar {
-        width: 350px;
-        height: calc(100vh - 56px);
-        display: flex;
-        flex-direction: column;
+      width: 350px;
+      height: calc(100vh - 56px);
+      display: flex;
+      flex-direction: column;
     }
 
     .sidebar h5 {
-        height: 4rem;
-        line-height: 2rem;
-        margin: 0;
-        padding: 0 1rem;
-        border-bottom: 1px solid #dee2e6;
-        flex-shrink: 0;
+      height: 4rem;
+      line-height: 2rem;
+      margin: 0;
+      padding: 0 1rem;
+      border-bottom: 1px solid #dee2e6;
+      flex-shrink: 0;
     }
 
     .sidebar ul.list-group {
-        flex-grow: 1;
-        overflow-y: auto;
-        margin: 0;
-        padding: 0;
+      flex-grow: 1;
+      overflow-y: auto;
+      margin: 0;
+      padding: 0;
     }
 
     .location-button {
-        position: absolute;
-        bottom: 30px;
-        right: 10px;
-        z-index: 10;
-        width: 40px;
-        height: 40px;
-        background-color: white;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        padding: 5px;
-        cursor: pointer;
-        box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
+      position: absolute;
+      bottom: 30px;
+      right: 10px;
+      z-index: 10;
+      width: 40px;
+      height: 40px;
+      background-color: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 5px;
+      cursor: pointer;
+      box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .location-button img {
-        width: 22px;
-        height: 22px;
+      width: 22px;
+      height: 22px;
     }
 
     .map-toggle-controls {
-        position: absolute;
-        top: 3px;
-        right: 10px;
-        z-index: 10;
-        background: white;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        padding: 5px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-        display: flex; /* 가로 배치 */
-        gap: 10px; /* 버튼 사이 간격 */
-        align-items: center;
-    }
+    position: absolute;
+    top: 3px;
+    right: 10px;
+    z-index: 10;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 5px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    display: flex; /* 가로 배치 */
+    gap: 10px; /* 버튼 사이 간격 */
+    align-items: center;
+}
 
-    .map-toggle-controls button {
-        background: white;
-        border: none;
-        cursor: pointer;
-        padding: 3px;
-        border-radius: 5px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
+.map-toggle-controls button {
+    background: white;
+    border: none;
+    cursor: pointer;
+    padding: 3px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-    .map-toggle-controls button img {
-        width: 30px;
-        height: 30px;
-    }
+.map-toggle-controls button img {
+    width: 30px;
+    height: 30px;
+}
 
 
-    .slider-left {
+
+
+     .slider-left {
         animation-duration: 0.3s;
         animation-name: slide-in-from-left;
         animation-fill-mode: forwards;
@@ -191,15 +193,15 @@
                 </div>
 
 
-                <ul class="list-group list-group-flush flex-grow-1 overflow-auto">
-                    {% for b in basics %}
-                    <li class="list-group-item parking-item" data-name="{{ b.name }}">
-                        <div class="fw-bold">{{ b.name }}</div>
-                        총 구획: {{ b.total }}<br>
-                        가용 대수: {{ b.avblPklotCnt }}<br>
-                        제공 시간: {{ b.ocrnDt }}<br>
-                    </li>
-                    {% endfor %}
+                <ul id="parking-list" class="list-group list-group-flush flex-grow-1 overflow-auto">
+                  {% for b in basics %}
+                  <li class="list-group-item parking-item" data-name="{{ b.name }}">
+                      <div class="fw-bold">{{ b.name }}</div>
+                      총 구획: {{ b.total }}<br>
+                      가용 대수: {{ b.avblPklotCnt }}<br>
+                      제공 시간: {{ b.ocrnDt }}<br>
+                  </li>
+                  {% endfor %}
                 </ul>
             </div>
 
@@ -226,117 +228,117 @@
         </div>
     </div>
 </div>
-<!-- 📌 Kakao 지도 API -->
-<script type="text/javascript"
-        src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=863559e6bebce003983f160e07c1ac27&libraries=services"></script>
+    <!-- 📌 Kakao 지도 API -->
+    <script type="text/javascript"
+            src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=863559e6bebce003983f160e07c1ac27&libraries=services"></script>
 
-<!-- 사이드바 슬라이딩 -->
-<script>
+    <!-- 사이드바 슬라이딩 -->
+    <script>
 
-    let state = true;
+        let state = true;
 
-    function toggle_sidebar() {
-        if (state) {
-            $("#sidebar_toggle").text(">");
-            $("#sidebar").addClass("slider-left").removeClass("slider-right");
-        } else {
-            $("#sidebar_toggle").text("<");
-            $("#sidebar").addClass("slider-right").removeClass("slider-left");
+        function toggle_sidebar() {
+            if (state) {
+                $("#sidebar_toggle").text(">");
+                $("#sidebar").addClass("slider-left").removeClass("slider-right");
+            } else {
+                $("#sidebar_toggle").text("<");
+                $("#sidebar").addClass("slider-right").removeClass("slider-left");
+            }
+
+            state = !state;
         }
 
-        state = !state;
-    }
+    </script>
 
-</script>
-
-<script>
+    <script>
     // ================== 로그인 여부 플래그 ==================
-    const IS_AUTHENTICATED = {{request.user.is_authenticated | yesno:"true,false"}};
+    const IS_AUTHENTICATED = {{ request.user.is_authenticated|yesno:"true,false" }};
 
     // ================== 즐겨찾기 전역 관리 ==================
     let FAVORITE_SET = new Set();
     let CSRF_TOKEN = null;
 
     function getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
     }
 
     async function loadFavorites() {
-        if (!IS_AUTHENTICATED) {
-            FAVORITE_SET = new Set();
-            return;
+      if (!IS_AUTHENTICATED) {
+        FAVORITE_SET = new Set();
+        return;
+      }
+      try {
+        const res = await fetch('/favorites/ids/', { credentials: 'same-origin' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.ok) {
+          FAVORITE_SET = new Set((data.ids || []).map(String));
+          CSRF_TOKEN = data.csrfToken || getCookie('csrftoken');
         }
-        try {
-            const res = await fetch('/favorites/ids/', {credentials: 'same-origin'});
-            if (!res.ok) return;
-            const data = await res.json();
-            if (data.ok) {
-                FAVORITE_SET = new Set((data.ids || []).map(String));
-                CSRF_TOKEN = data.csrfToken || getCookie('csrftoken');
-            }
-        } catch (e) {
-            console.error(e);
-        }
+      } catch (e) {
+        console.error(e);
+      }
     }
 
     function setStarIcon(btnEl) {
-        const pk = btnEl?.dataset?.pk;
-        if (!pk) return;
-        const icon = btnEl.querySelector('.star-icon');
-        if (!icon) return;
-        if (!IS_AUTHENTICATED) {
-            icon.textContent = '☆';
-            return;
-        }
-        icon.textContent = FAVORITE_SET.has(String(pk)) ? '⭐' : '☆';
+      const pk = btnEl?.dataset?.pk;
+      if (!pk) return;
+      const icon = btnEl.querySelector('.star-icon');
+      if (!icon) return;
+      if (!IS_AUTHENTICATED) {
+        icon.textContent = '☆';
+        return;
+      }
+      icon.textContent = FAVORITE_SET.has(String(pk)) ? '⭐' : '☆';
     }
 
     // 클릭 시 즐겨찾기 토글
     document.addEventListener('click', async (e) => {
-        const btn = e.target.closest('.favorite-btn');
-        if (!btn) return;
+      const btn = e.target.closest('.favorite-btn');
+      if (!btn) return;
 
-        if (!IS_AUTHENTICATED) {
-            alert('로그인 해주세요.');
-            return;
+      if (!IS_AUTHENTICATED) {
+        alert('로그인 해주세요.');
+        return;
+      }
+
+      const pk = btn.dataset.pk;
+      const icon = btn.querySelector('.star-icon');
+
+      try {
+        const res = await fetch(`/favorites/${pk}/toggle/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': CSRF_TOKEN || getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          credentials: 'same-origin'
+        });
+
+        if (res.status === 403) {
+          alert('로그인이 필요합니다.');
+          return;
+        }
+        const data = await res.json();
+        if (!data.ok) {
+          alert('처리 중 오류가 발생했습니다.');
+          return;
         }
 
-        const pk = btn.dataset.pk;
-        const icon = btn.querySelector('.star-icon');
-
-        try {
-            const res = await fetch(`/favorites/${pk}/toggle/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': CSRF_TOKEN || getCookie('csrftoken'),
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                credentials: 'same-origin'
-            });
-
-            if (res.status === 403) {
-                alert('로그인이 필요합니다.');
-                return;
-            }
-            const data = await res.json();
-            if (!data.ok) {
-                alert('처리 중 오류가 발생했습니다.');
-                return;
-            }
-
-            if (data.status === 'added') {
-                FAVORITE_SET.add(String(pk));
-                if (icon) icon.textContent = '⭐';
-            } else {
-                FAVORITE_SET.delete(String(pk));
-                if (icon) icon.textContent = '☆';
-            }
-        } catch (err) {
-            console.error(err);
-            alert('네트워크 오류가 발생했습니다.');
+        if (data.status === 'added') {
+          FAVORITE_SET.add(String(pk));
+          if (icon) icon.textContent = '⭐';
+        } else {
+          FAVORITE_SET.delete(String(pk));
+          if (icon) icon.textContent = '☆';
         }
+      } catch (err) {
+        console.error(err);
+        alert('네트워크 오류가 발생했습니다.');
+      }
     });
 
     // ================== 지도 로직 ==================
@@ -369,9 +371,9 @@
     let cctvVisible = true;
 
     const parkingMarkerImage = new kakao.maps.MarkerImage(
-        "{% static 'imgs/parking-area.png' %}",
-        new kakao.maps.Size(35, 35),
-        {offset: new kakao.maps.Point(20, 40)}
+      "{% static 'imgs/parking-area.png' %}",
+      new kakao.maps.Size(35, 35),
+      { offset: new kakao.maps.Point(20, 40) }
     );
 
     currentMarker = new kakao.maps.Marker({
@@ -393,23 +395,23 @@
 
     // ================== 주차장 마커 등록 ==================
     basics.forEach(b => {
-        const idStr = String(b.id);
-        basicsById[idStr] = b;
-        const marker = new kakao.maps.Marker({
-            position: new kakao.maps.LatLng(b.lat, b.lng),
-            title: b.name,
-            map: map,
-            image: parkingMarkerImage
-        });
-        marker.isOpen = false;
-        markerMap[b.name] = marker;
-        markerById[idStr] = marker;
+      const idStr = String(b.id);
+      basicsById[idStr] = b;
+      const marker = new kakao.maps.Marker({
+          position: new kakao.maps.LatLng(b.lat, b.lng),
+          title: b.name,
+          map: map,
+          image: parkingMarkerImage
+      });
+      marker.isOpen = false;
+      markerMap[b.name] = marker;
+      markerById[idStr] = marker;
 
-        parkingMarkers.push(marker);   // ✅ 배열에 저장
+      parkingMarkers.push(marker);   // ✅ 배열에 저장
 
-        kakao.maps.event.addListener(marker, 'click', () => {
-            toggleInfowindow(marker, b.name);
-        });
+      kakao.maps.event.addListener(marker, 'click', () => {
+          toggleInfowindow(marker, b.name);
+      });
     });
 
     const cameraMarkerImage = new kakao.maps.MarkerImage(
@@ -450,33 +452,33 @@
 
     // ================== 토글 함수 ==================
     function toggleParkingMarkers() {
-        parkingVisible = !parkingVisible;
-        parkingMarkers.forEach(m => m.setMap(parkingVisible ? map : null));
-        document.getElementById('parkingToggleBtn').style.backgroundColor = parkingVisible ? "#ddd" : "white";
+      parkingVisible = !parkingVisible;
+      parkingMarkers.forEach(m => m.setMap(parkingVisible ? map : null));
+      document.getElementById('parkingToggleBtn').style.backgroundColor = parkingVisible ? "#ddd" : "white";
     }
 
     function toggleCCTVMarkers() {
-        cctvVisible = !cctvVisible;
-        cctvMarkers.forEach(m => m.setMap(cctvVisible ? map : null));
-        document.getElementById('cctvToggleBtn').style.backgroundColor = cctvVisible ? "#ddd" : "white";
+      cctvVisible = !cctvVisible;
+      cctvMarkers.forEach(m => m.setMap(cctvVisible ? map : null));
+      document.getElementById('cctvToggleBtn').style.backgroundColor = cctvVisible ? "#ddd" : "white";
     }
 
     // ================== 인포윈도우 ==================
     function toggleInfowindow(marker, name) {
-        const b = basics.find(b => b.name === name);
-        if (!b) return;
+      const b = basics.find(b => b.name === name);
+      if (!b) return;
 
-        if (marker.isOpen) {
-            infowindow.close();
-            marker.isOpen = false;
-        } else {
-            infowindow.close();
+      if (marker.isOpen) {
+          infowindow.close();
+          marker.isOpen = false;
+      } else {
+          infowindow.close();
 
-            const starChar = IS_AUTHENTICATED
-                ? (FAVORITE_SET.has(String(b.id)) ? '⭐' : '☆')
-                : '☆';
+          const starChar = IS_AUTHENTICATED
+            ? (FAVORITE_SET.has(String(b.id)) ? '⭐' : '☆')
+            : '☆';
 
-            infowindow.setContent(`
+          infowindow.setContent(`
               <div class="card shadow-sm" style="width: 300px; font-size: 14px; overflow-x: hidden;">
                   <div class="card-header bg-primary text-white fw-bold">
                     <div class="d-flex justify-content-between align-items-center">
@@ -526,14 +528,14 @@
               </div>
           `);
 
-            infowindow.open(map, marker);
-            marker.isOpen = true;
+          infowindow.open(map, marker);
+          marker.isOpen = true;
 
-            kakao.maps.event.addListener(infowindow, 'domready', function () {
-                const btn = document.querySelector('.favorite-btn[data-pk="' + b.id + '"]');
-                if (btn) setStarIcon(btn);
-            });
-        }
+          kakao.maps.event.addListener(infowindow, 'domready', function() {
+            const btn = document.querySelector('.favorite-btn[data-pk="' + b.id + '"]');
+            if (btn) setStarIcon(btn);
+          });
+      }
     }
 
     // ================== 리스트 클릭 포커스 ==================
@@ -555,18 +557,80 @@
         const dLat = toRad(lat2 - lat1);
         const dLng = toRad(lng2 - lng1);
         const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-            Math.sin(dLng / 2) * Math.sin(dLng / 2);
+                  Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                  Math.sin(dLng / 2) * Math.sin(dLng / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c;
     }
 
-    function moveToCurrentLocation() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function (position) {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                locPosition = new kakao.maps.LatLng(lat, lng);
+    // ✅ 주차장 리스트 다시 렌더링
+    function renderParkingList(sortedBasics) {
+        const listContainer = document.getElementById('parking-list');
+        listContainer.innerHTML = ''; // 기존 리스트 비우기
+
+        sortedBasics.forEach(b => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item parking-item';
+            li.dataset.name = b.name;
+            li.innerHTML = `
+                <div class="fw-bold">${b.name}</div>
+                총 구획: ${b.total}<br>
+                가용 대수: ${b.avblPklotCnt}<br>
+                제공 시간: ${b.ocrnDt}<br>
+            `;
+            // 클릭 시 마커 이동
+            li.addEventListener('click', () => {
+                const marker = markerMap[b.name];
+                if (marker) {
+                    map.panTo(marker.getPosition());
+                    toggleInfowindow(marker, b.name);
+                }
+            });
+            listContainer.appendChild(li);
+        });
+    }
+
+  function focusAndOpenById(id) {
+    const key = String(id);
+    const b = basicsById[key], m = markerById[key];
+    if (!b || !m) return false;
+    map.panTo(m.getPosition());
+    toggleInfowindow(m, b.name);
+    return true;
+  }
+  function focusAndOpenByName(name) {
+    const m = markerMap[name];
+    if (!m) return false;
+    map.panTo(m.getPosition());
+    toggleInfowindow(m, name);
+    return true;
+  }
+  function initFocusFromUrl() {
+    const params = new URLSearchParams(location.search);
+    const focusId = params.get('focus_id');
+    const focusName = params.get('focus');
+    if (focusId) {
+      if (!focusAndOpenById(focusId) && focusName) focusAndOpenByName(focusName);
+    } else if (focusName) {
+      focusAndOpenByName(focusName);
+    }
+  }
+  // ✅ 세션 기반 포커스(주소창은 깔끔하게 유지)
+  function focusFromSession() {
+    const id = sessionStorage.getItem('focus_id');
+    if (id) {
+      focusAndOpenById(id);
+      sessionStorage.removeItem('focus_id');
+    }
+  }
+
+  // ✅ 현재 위치 이동 함수 수정
+  function moveToCurrentLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function(position) {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        locPosition = new kakao.maps.LatLng(lat, lng);
 
                 map.setCenter(locPosition);
 
@@ -590,26 +654,38 @@
                     map: map
                 });
 
-                let cctvNear = false;
-                for (let c of cameras) {
-                    const distance = getDistance(lat, lng, c.lat, c.lng);
-                    if (distance <= 200) {
-                        cctvNear = true;
-                        break;
-                    }
-                }
+      // 📌 주차장 거리 기준 정렬
+      const sortedBasics = basics
+        .map(b => ({
+          ...b,
+          distance: getDistance(lat, lng, b.lat, b.lng)
+        }))
+        .sort((a, b) => a.distance - b.distance);
 
-                if (cctvNear) {
-                    alert("⚠️ 주의: 현재 위치 기준 200m 이내에 CCTV가 있습니다.");
-                }
+      // 📌 리스트 갱신
+      renderParkingList(sortedBasics);
 
-            }, function (error) {
-                alert("📵 위치 정보를 가져올 수 없습니다.");
-                console.error(error);
-            });
-        } else {
-            alert("🚫 위치 정보 사용이 불가능한 브라우저입니다.");
+      // 📌 CCTV 근처 알림
+      let cctvNear = false;
+      for (let c of cameras) {
+        const distance = getDistance(lat, lng, c.lat, c.lng);
+        if (distance <= 200) {
+          cctvNear = true;
+          break;
         }
+      }
+
+          if (cctvNear) {
+            alert("⚠️ 주의: 현재 위치 기준 200m 이내에 CCTV가 있습니다.");
+          }
+
+        }, function(error) {
+          alert("📵 위치 정보를 가져올 수 없습니다.");
+          console.error(error);
+        });
+      } else {
+        alert("🚫 위치 정보 사용이 불가능한 브라우저입니다.");
+      }
     }
 
     const searchInput = document.getElementById('search-input');
@@ -618,41 +694,55 @@
     const ps = new kakao.maps.services.Places(); // 카카오 장소 검색
     let searchMarkers = [];
 
-    // 기존 마커 제거
-    function removeSearchMarkers() {
-        searchMarkers.forEach(marker => marker.setMap(null));
-        searchMarkers = [];
-        infowindow.close();
-    }
+// 기존 마커 제거
+function removeSearchMarkers() {
+  searchMarkers.forEach(marker => marker.setMap(null));
+  searchMarkers = [];
+  infowindow.close();
+}
 
-    // 검색 수행 후 마커 표시
-    function showPlaceOnMap(place) {
-        removeSearchMarkers();
+// 검색 수행 후 마커 표시
+function showPlaceOnMap(place) {
+  removeSearchMarkers();
 
-        const marker = new kakao.maps.Marker({
-            map,
-            position: new kakao.maps.LatLng(place.y, place.x),
-            title: place.place_name
-        });
+  const marker = new kakao.maps.Marker({
+    map,
+    position: new kakao.maps.LatLng(place.y, place.x),
+    title: place.place_name
+  });
 
-        searchMarkers.push(marker);
-        map.panTo(marker.getPosition());
+  searchMarkers.push(marker);
+  map.panTo(marker.getPosition());
 
-        infowindow.setContent(`
-            <div style="padding:5px; font-size:14px; max-width:250px;">
-            <strong>${place.place_name}</strong><br>
-            ${place.road_address_name || place.address_name || ''}<br>
-            <a href="https://map.kakao.com/link/map/${place.id}" target="_blank" style="color:#3c80f6;">
-                지도 상세보기
+  infowindow.setContent(`
+    <div style="padding:5px; font-size:14px; max-width:250px;">
+      <strong>${place.place_name}</strong><br>
+      ${place.road_address_name || place.address_name || ''}<br>
+      <a href="https://map.kakao.com/link/map/${place.id}" target="_blank" style="color:#3c80f6;">
+        지도 상세보기
       </a>
     </div>
   `);
-        infowindow.open(map, marker);
-    }
+  infowindow.open(map, marker);
+
+  // 📌 검색 위치 기준 주차장 정렬
+  const lat = parseFloat(place.y);
+  const lng = parseFloat(place.x);
+
+  const sortedBasics = basics
+    .map(b => ({
+      ...b,
+      distance: getDistance(lat, lng, b.lat, b.lng)
+    }))
+    .sort((a, b) => a.distance - b.distance);
+
+  renderParkingList(sortedBasics);
+}
+
 
     // 입력 이벤트 처리 (실시간 호출)
     searchInput.addEventListener('input', () => {
-        let keyword = searchInput.value.trim();
+        const keyword = searchInput.value.trim();
         autocompleteResults.innerHTML = '';
 
         if (!keyword) {
@@ -683,20 +773,30 @@
         dropdownInstance.show();
     });
 
-    // 엔터키 검색
-    searchInput.addEventListener('keydown', e => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const firstItem = autocompleteResults.querySelector('li');
-            if (firstItem) firstItem.click();
-        }
-    });
+// 엔터키 검색
+searchInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const firstItem = autocompleteResults.querySelector('li');
+    if (firstItem) firstItem.click();
+  }
+});
 
+  // === (추가) 지도 움직이거나 줌 바꾸면 인포윈도우 닫기 ===
+  function closeAllInfoWindows() {
+    infowindow.close();
+    Object.values(markerMap).forEach(m => m.isOpen = false);
+    Object.values(markerById).forEach(m => m.isOpen = false);
+  }
+  kakao.maps.event.addListener(map, 'dragstart', closeAllInfoWindows);
+  kakao.maps.event.addListener(map, 'zoom_changed', closeAllInfoWindows);
 
-    // ✅ 즐겨찾기 로드가 끝난 뒤 포커스 실행
-    window.addEventListener('DOMContentLoaded', async () => {
-        await loadFavorites();
-    });
+  // ✅ 즐겨찾기 로드가 끝난 뒤 포커스 실행
+  window.addEventListener('DOMContentLoaded', async () => {
+    await loadFavorites();
+    initFocusFromUrl();   // 쿼리로 온 경우(호환)
+    focusFromSession();   // 세션으로 온 경우(주소 깔끔)
+  });
 </script>
 
-{% endblock %}
+    {% endblock %}
