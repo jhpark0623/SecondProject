@@ -125,6 +125,14 @@ def favorite_list(request):
           .filter(user=request.user)
           .select_related('parking')
           .order_by('-created_at'))
+
+    page = request.GET.get('page', 1)
+    per_page = 5  # 필요시 조절
+    paginator = Paginator(qs, per_page)
+    page_obj = paginator.get_page(page)
+
     return render(request, "favorite_list.html", {
-        "favorites": qs,
+        "favorites": page_obj.object_list,   # 기존 for문 호환
+        "page_obj": page_obj,
+        "is_paginated": page_obj.has_other_pages(),
     })
