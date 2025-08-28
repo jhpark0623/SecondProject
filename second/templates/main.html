@@ -188,15 +188,15 @@
                 </div>
 
 
-                <ul class="list-group list-group-flush flex-grow-1 overflow-auto">
-                    {% for b in basics %}
-                    <li class="list-group-item parking-item" data-name="{{ b.name }}">
-                        <div class="fw-bold">{{ b.name }}</div>
-                        총 구획: {{ b.total }}<br>
-                        가용 대수: {{ b.avblPklotCnt }}<br>
-                        제공 시간: {{ b.ocrnDt }}<br>
-                    </li>
-                    {% endfor %}
+                <ul id="parking-list" class="list-group list-group-flush flex-grow-1 overflow-auto">
+                  {% for b in basics %}
+                  <li class="list-group-item parking-item" data-name="{{ b.name }}">
+                      <div class="fw-bold">{{ b.name }}</div>
+                      총 구획: {{ b.total }}<br>
+                      가용 대수: {{ b.avblPklotCnt }}<br>
+                      제공 시간: {{ b.ocrnDt }}<br>
+                  </li>
+                  {% endfor %}
                 </ul>
             </div>
 
@@ -546,73 +546,120 @@
     });
 
     // ================== 위치 이동 ==================
-    function getDistance(lat1, lng1, lat2, lng2) {
-        const R = 6371000;
-        const toRad = x => x * Math.PI / 180;
-        const dLat = toRad(lat2 - lat1);
-        const dLng = toRad(lng2 - lng1);
-        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                  Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-                  Math.sin(dLng / 2) * Math.sin(dLng / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
-    }
+    // 거리 계산 함수
+    // 거리 계산 함수 (이미 있음)
+function getDistance(lat1, lng1, lat2, lng2) {
+    const R = 6371000;
+    const toRad = x => x * Math.PI / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+              Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
 
-    function moveToCurrentLocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          const newPosition = new kakao.maps.LatLng(lat, lng);
+    // ✅ 주차장 리스트 다시 렌더링
+    function renderParkingList(sortedBasics) {
+        const listContainer = document.getElementById('parking-list');
+        listContainer.innerHTML = ''; // 기존 리스트 비우기
 
-          map.setCenter(newPosition);
-
-          if (currentMarker) currentMarker.setMap(null);
-          if (currentCircle) currentCircle.setMap(null);
-
-          currentMarker = new kakao.maps.Marker({
-            position: newPosition,
-            map: map,
-            title: '현재 위치'
-          });
-
-          currentCircle = new kakao.maps.Circle({
-            center: newPosition,
-            radius: 200,
-            strokeWeight: 2,
-            strokeColor: '#FF0000',
-            strokeOpacity: 0.7,
-            fillColor: '#FF0000',
-            fillOpacity: 0.1,
-            map: map
-          });
-
-          let cctvNear = false;
-          for (let c of cameras) {
-            const distance = getDistance(lat, lng, c.lat, c.lng);
-            if (distance <= 200) {
-              cctvNear = true;
-              break;
-            }
-          }
-
-          if (cctvNear) {
-            alert("⚠️ 주의: 현재 위치 기준 200m 이내에 CCTV가 있습니다.");
-          }
-
-        }, function(error) {
-          alert("📵 위치 정보를 가져올 수 없습니다.");
-          console.error(error);
+        sortedBasics.forEach(b => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item parking-item';
+            li.dataset.name = b.name;
+            li.innerHTML = `
+                <div class="fw-bold">${b.name}</div>
+                총 구획: ${b.total}<br>
+                가용 대수: ${b.avblPklotCnt}<br>
+                제공 시간: ${b.ocrnDt}<br>
+            `;
+            // 클릭 시 마커 이동
+            li.addEventListener('click', () => {
+                const marker = markerMap[b.name];
+                if (marker) {
+                    map.panTo(marker.getPosition());
+                    toggleInfowindow(marker, b.name);
+                }
+            });
+            listContainer.appendChild(li);
         });
-      } else {
-        alert("🚫 위치 정보 사용이 불가능한 브라우저입니다.");
-      }
     }
+
+
+
+
+// ✅ 현재 위치 이동 함수 수정
+function moveToCurrentLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(position) {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      const newPosition = new kakao.maps.LatLng(lat, lng);
+
+      map.setCenter(newPosition);
+
+      if (currentMarker) currentMarker.setMap(null);
+      if (currentCircle) currentCircle.setMap(null);
+
+      currentMarker = new kakao.maps.Marker({
+        position: newPosition,
+        map: map,
+        title: '현재 위치'
+      });
+
+      currentCircle = new kakao.maps.Circle({
+        center: newPosition,
+        radius: 200,
+        strokeWeight: 2,
+        strokeColor: '#FF0000',
+        strokeOpacity: 0.7,
+        fillColor: '#FF0000',
+        fillOpacity: 0.1,
+        map: map
+      });
+
+      // 📌 주차장 거리 기준 정렬
+      const sortedBasics = basics
+        .map(b => ({
+          ...b,
+          distance: getDistance(lat, lng, b.lat, b.lng)
+        }))
+        .sort((a, b) => a.distance - b.distance);
+
+      // 📌 리스트 갱신
+      renderParkingList(sortedBasics);
+
+      // 📌 CCTV 근처 알림
+      let cctvNear = false;
+      for (let c of cameras) {
+        const distance = getDistance(lat, lng, c.lat, c.lng);
+        if (distance <= 200) {
+          cctvNear = true;
+          break;
+        }
+      }
+
+      if (cctvNear) {
+        alert("⚠️ 주의: 현재 위치 기준 200m 이내에 CCTV가 있습니다.");
+      }
+
+    }, function(error) {
+      alert("📵 위치 정보를 가져올 수 없습니다.");
+      console.error(error);
+    });
+  } else {
+    alert("🚫 위치 정보 사용이 불가능한 브라우저입니다.");
+  }
+}
+
+
 
     const searchInput = document.getElementById('search-input');
-const autocompleteResults = document.getElementById('autocomplete-results');
-const ps = new kakao.maps.services.Places(); // 카카오 장소 검색
-let searchMarkers = [];
+    const autocompleteResults = document.getElementById('autocomplete-results');
+    const ps = new kakao.maps.services.Places(); // 카카오 장소 검색
+    let searchMarkers = [];
 
 // 기존 마커 제거
 function removeSearchMarkers() {
@@ -644,7 +691,21 @@ function showPlaceOnMap(place) {
     </div>
   `);
   infowindow.open(map, marker);
+
+  // 📌 검색 위치 기준 주차장 정렬
+  const lat = parseFloat(place.y);
+  const lng = parseFloat(place.x);
+
+  const sortedBasics = basics
+    .map(b => ({
+      ...b,
+      distance: getDistance(lat, lng, b.lat, b.lng)
+    }))
+    .sort((a, b) => a.distance - b.distance);
+
+  renderParkingList(sortedBasics);
 }
+
 
 // 입력 이벤트 처리 (실시간 호출)
 searchInput.addEventListener('input', () => {
@@ -681,7 +742,7 @@ searchInput.addEventListener('keydown', e => {
 
 
     // ✅ 즐겨찾기 로드가 끝난 뒤 포커스 실행
-    window.addEventListener('DOMContentLoaded', async () => {
+    window.addEventListener('DOMContentLoaded', async () => {5
       await loadFavorites();
     });
 </script>
