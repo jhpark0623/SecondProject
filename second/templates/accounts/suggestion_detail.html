@@ -5,8 +5,8 @@
 {% block content %}
 <div class="container mt-5" style="max-width: 800px;">
     <h2>{{ suggestion.title }}</h2>
-    <p>{{ suggestion.content }}</p>
     <small class="text-muted">작성자: {{ suggestion.author.username }} | {{ suggestion.created_at|date:"Y-m-d H:i" }}</small>
+    <p style="margin: 40px 0;">{{ suggestion.content }}</p>
     <hr>
 
     <h4>관리자 답변</h4>
@@ -35,7 +35,7 @@
         <!-- 답변 작성 폼 (답변이 없을 때만 보이게) -->
         <form method="post" action="{% url 'suggestion_reply' suggestion.id %}" class="mt-3">
             {% csrf_token %}
-            <textarea name="content" class="form-control mb-2" rows="3" placeholder="답변을 입력하세요"></textarea>
+            <textarea name="content" class="form-control mb-2" rows="3" placeholder="답변을 입력하세요" style="resize: none"></textarea>
             <button type="submit" class="btn btn-primary">답변 등록</button>
         </form>
     {% endif %}

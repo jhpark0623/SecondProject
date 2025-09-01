@@ -206,7 +206,7 @@
 
                 <ul id="parking-list" class="list-group list-group-flush flex-grow-1 overflow-auto">
                     {% for b in basics %}
-                    <li class="list-group-item parking-item" data-name="{{ b.name }}">
+                    <li class="list-group-item parking-item" data-name="{{ b.name }}" id="{{b.name}}" style="cursor: pointer">
                         <div class="fw-bold">{{ b.name }}</div>
                         총 구획: {{ b.total }}<br>
                         가용 대수: {{ b.avblPklotCnt }}<br>
@@ -478,16 +478,18 @@
     function toggleInfowindow(marker, name) {
         const b = basics.find(b => b.name === name);
         if (!b) return;
-
-        if (marker.isOpen) {
-            infowindow.close();
-            marker.isOpen = false;
-        } else {
+        //
+        // if (marker.isOpen) {
+        //     infowindow.close();
+        //     marker.isOpen = false;
+        // }
             infowindow.close();
 
             const starChar = IS_AUTHENTICATED
                 ? (FAVORITE_SET.has(String(b.id)) ? '⭐' : '☆')
                 : '☆';
+
+
 
             infowindow.setContent(`
               <div class="card shadow-sm" style="width: 300px; font-size: 14px; overflow-x: hidden;">
@@ -511,11 +513,11 @@
                               <div>${b.avblPklotCnt}</div>
                           </div>
                       </div>
-                      <hr>
+                      <hr style="margin: 0">
                       <table class="table table-sm mb-0">
                           <tbody>
                               <tr>
-                                  <th scope="row">주소</th>
+                                  <th scope="row" style="width: 70px;">주소</th>
                                   <td>${b.address || '정보 없음'}</td>
                               </tr>
                               <tr>
@@ -546,17 +548,19 @@
                 const btn = document.querySelector('.favorite-btn[data-pk="' + b.id + '"]');
                 if (btn) setStarIcon(btn);
             });
-        }
+
     }
 
     // ================== 리스트 클릭 포커스 ==================
     document.querySelectorAll('.parking-item').forEach(item => {
         item.addEventListener('click', () => {
+            $(".parking-item").css("background", "white");
             const name = item.getAttribute('data-name');
             const marker = markerMap[name];
             if (marker) {
                 map.panTo(marker.getPosition());
                 toggleInfowindow(marker, name);
+                item.style.backgroundColor = "lightgray";
             }
         });
     });
@@ -798,6 +802,7 @@
 
     // === (추가) 지도 움직이거나 줌 바꾸면 인포윈도우 닫기 ===
     function closeAllInfoWindows() {
+        $(".parking-item").css("background", "white")
         infowindow.close();
         Object.values(markerMap).forEach(m => m.isOpen = false);
         Object.values(markerById).forEach(m => m.isOpen = false);

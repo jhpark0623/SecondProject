@@ -24,9 +24,9 @@ def start():
         pass
 
     # 기본정보: 하루 1회
-    #scheduler.add_job(save_parking_basic, 'cron', hour=2, minute=0, id='basic_job', replace_existing=True, next_run_time=datetime.now())
+    scheduler.add_job(save_parking_basic, 'cron', hour=2, minute=0, id='basic_job', replace_existing=True, next_run_time=datetime.now())
 
     # 가용정보: 5분마다
-    #scheduler.add_job(save_parking_availability, 'interval', minutes=1, id='availability_job', replace_existing=True)
+    scheduler.add_job(save_parking_availability, 'interval', minutes=1, id='availability_job', replace_existing=True)
 
     scheduler.start()

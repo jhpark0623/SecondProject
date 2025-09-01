@@ -23,7 +23,7 @@
         </form>
     </div>
 
-    <div id="table" >
+    <div id="table">
 
 
         <div class="row header blue">
@@ -45,27 +45,27 @@
             <div class="cell">
                 권한
             </div>
-            <div class="cell" >
+            <div class="cell">
                 활성화
             </div>
         </div>
 
         {% for user in users %}
-        <div class="row" {% if not user.is_active %} style="background-color: orchid" {% endif %}>
+        <div class="row" {% if not user.is_active %} style="color: red" {% endif %}>
             <div class="cell">
-                <a href="{% url 'profile_admin' user.id %}">{{ user.username }}</a>
+                <a href="{% url 'profile_admin' user.id %}">{{ user.username|default:"-" }} </a>
             </div>
             <div class="cell">
-                {{ user.name }}
+                {{ user.name|default:"-" }}
             </div>
             <div class="cell">
-                {{ user.email }}
+                {{ user.email|default:"-" }}
             </div>
             <div class="cell">
-                {{ user.phone }}
+                {{ user.phone|default:"-" }}
             </div>
             <div class="cell">
-                {{ user.date_joined|date:"Y-m-d H:i" }}
+                {{ user.date_joined|date:"Y-m-d H:i"|default:"-" }}
             </div>
             <div class="cell">
                 {% if user.is_staff %}
@@ -74,7 +74,7 @@
                 일반유저
                 {% endif %}
             </div>
-            <div class="cell">{% if user.is_active %} O {% else %} X {% endif %} </div>
+            <div class="cell">{% if user.is_active %} O {% else %} X {% endif %}</div>
         </div>
         {% empty %}
         <div class="row">

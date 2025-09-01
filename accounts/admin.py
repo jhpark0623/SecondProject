@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import CustomUser
+from .models import CustomUser, Suggestion, SuggestionReply
+
 
 class CustomUserAdmin(UserAdmin):
     list_display = [
@@ -14,3 +15,5 @@ class CustomUserAdmin(UserAdmin):
     ordering = ['-date_joined', '-last_login']
 
 admin.site.register(CustomUser, CustomUserAdmin)
+admin.site.register(Suggestion)
+admin.site.register(SuggestionReply)
