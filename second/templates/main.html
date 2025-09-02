@@ -169,12 +169,17 @@
 
     .dropdown-menu {
         width: 100%;
+        inset: auto !important;
+        transform: none !important;
     }
 
     input {
         border: 0;
     }
 
+    li {
+        cursor: pointer;
+    }
 </style>
 
 <div class="container-fluid p-0 m-0">
@@ -184,8 +189,8 @@
             <!-- 🅿️ 왼쪽 주차장 목록 -->
             <div class="sidebar d-flex flex-column">
                 <!-- 검색창 + 검색 결과 -->
-                <div>
-                    <div class="form-control focus-ring searchInput my-1 px-2" style="width: 98%; margin: 0 auto;">
+                <div id="search">
+                    <div class="form-control focus-ring  searchInput my-1 px-2" style="width: 98%; margin: 0 auto;">
                         <input type="text" class="dropdown-toggle" id="search-input"
                                placeholder="검색어를 입력하세요" data-bs-toggle="dropdown" aria-expanded="false">
 
@@ -206,7 +211,7 @@
 
                 <ul id="parking-list" class="list-group list-group-flush flex-grow-1 overflow-auto">
                     {% for b in basics %}
-                    <li class="list-group-item parking-item" data-name="{{ b.name }}" id="{{b.name}}" style="cursor: pointer">
+                    <li class="list-group-item parking-item" data-name="{{ b.name }}" id="{{b.name}}">
                         <div class="fw-bold">{{ b.name }}</div>
                         총 구획: {{ b.total }}<br>
                         가용 대수: {{ b.avblPklotCnt }}<br>
@@ -483,15 +488,14 @@
         //     infowindow.close();
         //     marker.isOpen = false;
         // }
-            infowindow.close();
+        infowindow.close();
 
-            const starChar = IS_AUTHENTICATED
-                ? (FAVORITE_SET.has(String(b.id)) ? '⭐' : '☆')
-                : '☆';
+        const starChar = IS_AUTHENTICATED
+            ? (FAVORITE_SET.has(String(b.id)) ? '⭐' : '☆')
+            : '☆';
 
 
-
-            infowindow.setContent(`
+        infowindow.setContent(`
               <div class="card shadow-sm" style="width: 300px; font-size: 14px; overflow-x: hidden;">
                   <div class="card-header bg-primary text-white fw-bold">
                     <div class="d-flex justify-content-between align-items-center">
@@ -541,13 +545,13 @@
               </div>
           `);
 
-            infowindow.open(map, marker);
-            marker.isOpen = true;
+        infowindow.open(map, marker);
+        marker.isOpen = true;
 
-            kakao.maps.event.addListener(infowindow, 'domready', function () {
-                const btn = document.querySelector('.favorite-btn[data-pk="' + b.id + '"]');
-                if (btn) setStarIcon(btn);
-            });
+        kakao.maps.event.addListener(infowindow, 'domready', function () {
+            const btn = document.querySelector('.favorite-btn[data-pk="' + b.id + '"]');
+            if (btn) setStarIcon(btn);
+        });
 
     }
 
@@ -708,6 +712,7 @@
 
     const searchInput = document.getElementById('search-input');
     const autocompleteResults = document.getElementById('autocomplete-results');
+    const search = document.getElementById('search');
     const dropdownInstance = new bootstrap.Dropdown(autocompleteResults);
     const ps = new kakao.maps.services.Places(); // 카카오 장소 검색
     let searchMarkers = [];
@@ -758,37 +763,61 @@
     }
 
 
+    searchInput.addEventListener("focus", (e) => {
+        if (autocompleteResults.innerHTML !== "")
+            dropdownInstance.show();
+    })
+
     // 입력 이벤트 처리 (실시간 호출)
     searchInput.addEventListener('input', () => {
         const keyword = searchInput.value.trim();
-        autocompleteResults.innerHTML = '';
 
-        if (!keyword) {
+
+        if (!keyword) { // input 태그가 비었을경우 dropdown 안보이게 하고 함수 종료
             dropdownInstance.hide();
+            autocompleteResults.innerHTML = '';
             return;
         }
 
-        console.log(keyword);
+        if (autocompleteResults.innerHTML !== '') // 기존 li가 있을경우 초기화
+            autocompleteResults.innerHTML = '';
 
         ps.keywordSearch(keyword, (data, status) => {
             if (status === kakao.maps.services.Status.OK) {
                 data.slice(0, 5).forEach(place => { // 상위 5개만 추천
+
                     const li = document.createElement('li');
                     li.className = 'dropdown-item';
                     li.textContent = place.place_name;
                     li.addEventListener('click', () => {
                         searchInput.value = place.place_name;
                         autocompleteResults.innerHTML = '';
+                        dropdownInstance.hide();
                         showPlaceOnMap(place); // 클릭 시 마커 표시
+                    });
+
+                    li.addEventListener('mousedown', (event) => {
+                        // mousedown 이벤트에서 input 태그의 blur 이벤트 방어
+                        event.preventDefault();
                     });
                     autocompleteResults.appendChild(li);
                 });
+                console.log(data.length)
+
+                dropdownInstance.show();
+
+            } else {
+                autocompleteResults.innerHTML = '';
+                dropdownInstance.hide();
             }
         }, {
             location: locPosition // 검색 시 현재 위치 중심으로 검색
         });
 
-        dropdownInstance.show();
+    });
+
+    searchInput.addEventListener("blur", () => {
+        dropdownInstance.hide();
     });
 
     // 엔터키 검색

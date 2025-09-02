@@ -25,7 +25,7 @@ def map_view(request):
     availability_dict = {
         a.pkplcNm: {
             "available": int(a.avblPklotCnt),
-            "time": a.ocrnDt
+            "time": a.ocrnDt[0:16]
         }
         for a in availability
     }
