@@ -9,83 +9,104 @@
 
 {% block content %}
 
+<div class="as">
 
-<div class="container mt-5" style="max-width: 55%;">
-    <h2>건의사항 목록</h2>
+    <div class="container mt-5">
+        <h2>건의사항 목록</h2>
+    </div>
 
     <div class="search-wrapper">
         <form method="get" class="search-form">
             <input name="search" type="text" value="{{ search }}" placeholder="아이디, 제목, 내용 검색">
-            <button class="btn11" type="submit" >검색</button>
+            <button class="btn11" type="submit">검색</button>
         </form>
     </div>
 
-    {% if suggestions %}
-        <ul class="list-group">
-            {% for suggestion in suggestions %}
+    <div id="table">
+        <div class="row header green">
+            <div class="cell">
+                작성자
+            </div>
+            <div class="cell">
+                제목
+            </div>
+            <div class="cell">
+                작성일
+            </div>
+            <div class="cell">
+                답변여부
+            </div>
+        </div>
 
-                <li class="list-group-item">
-                    <a class="new-su" href="{% url 'suggestion_detail' suggestion.id %}">
-                        {{ suggestion.title }}
-                    </a>
-                    <small class="text-muted">
-                        (작성일: {{ suggestion.created_at|date:"Y-m-d H:i" }}) {% if  suggestion.reply %} << 답변완료 {% endif %}
-                    </small>
-                </li>
+        {% for suggestion in suggestions %}
+        <div class="row">
+            <div class="cell">{{ suggestion.author.username }}</div>
+            <div class="cell">
+                <a class="new-su" href="{% url 'suggestion_detail' suggestion.id %}">
+                    {{ suggestion.title }}
+                </a>
+            </div>
+            <div class="cell">{{ suggestion.created_at|date:"Y-m-d H:i" }}</div>
 
-
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>등록된 건의사항이 없습니다.</p>
-    {% endif %}
-    <br>
-    <div class="text-end">
-        <a href="{% url 'suggestion_create' %}" class="btn btn-primary mb-3" >건의하기</a>
+            <div class="cell">{% if suggestion.reply %} 답변완료 {% else %} 대기중 {% endif %}</div>
+        </div>
+        {% empty %}
+        <div>
+            등록된 건의사항이 없습니다.
+        </div>
+        {% endfor %}
     </div>
+
+    <br>
+    <div class="text-end mt-3">
+        <a href="{% url 'suggestion_create' %}" class="btn btn-primary">건의하기</a>
+    </div>
+
     <br>
     <nav aria-label="Page navigation">
-      <ul class="pagination justify-content-center">
 
-        <!-- 처음으로 -->
-        {% if page_obj.has_previous %}
-          <li class="page-item">
-            <a class="page-link" href="?page=1&search={{ search }}"><<</a>
-          </li>
-        {% endif %}
+        <ul class="pagination justify-content-center">
 
-        <!-- 이전 -->
-        {% if page_obj.has_previous %}
-          <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&search={{ search }}"><</a>
-          </li>
-        {% endif %}
+            <!-- 처음으로 -->
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1&search={{ search }}"><<</a>
+            </li>
+            {% endif %}
 
-        <!-- 번호 범위 -->
-        {% for num in page_range %}
-          {% if page_obj.number == num %}
+            <!-- 이전 -->
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&search={{ search }}"><</a>
+            </li>
+            {% endif %}
+
+            <!-- 번호 범위 -->
+            {% for num in page_range %}
+            {% if page_obj.number == num %}
             <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-          {% else %}
+            {% else %}
             <li class="page-item"><a class="page-link" href="?page={{ num }}&search={{ search }}">{{ num }}</a></li>
-          {% endif %}
-        {% endfor %}
+            {% endif %}
+            {% endfor %}
 
-        <!-- 다음 -->
-        {% if page_obj.has_next %}
-          <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.next_page_number }}&search={{ search }}">></a>
-          </li>
-        {% endif %}
+            <!-- 다음 -->
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}&search={{ search }}">></a>
+            </li>
+            {% endif %}
 
-        <!-- 끝으로 -->
-        {% if page_obj.has_next %}
-          <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&search={{ search }}">>></a>
-          </li>
-        {% endif %}
+            <!-- 끝으로 -->
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&search={{ search }}">>></a>
+            </li>
+            {% endif %}
 
-      </ul>
+        </ul>
     </nav>
 
 </div>
+
 {% endblock %}

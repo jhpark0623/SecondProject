@@ -42,7 +42,7 @@ def signup(request):
 
 @login_required(login_url="/accounts/login/")
 def profile(request):
-    return render(request, "accounts/profile.html")
+    return render(request, "accounts/profile.html", {"profile_user": request.user})
 
 @user_passes_test(lambda u: u.is_staff, login_url="/accounts/login/")
 def profile_admin(request, user_id):
@@ -56,10 +56,11 @@ def profile_update(request):
         phone = request.POST.get("phone")
         password1 = request.POST.get("password1")
 
+
         # 비밀번호 확인
         if not request.user.check_password(password1):
             messages.error(request, "비밀번호가 일치하지 않습니다.")
-            return render(request, "accounts/profile.html", {"user": request.user})
+            return render(request, "accounts/profile.html", {"profile_user": request.user})
         else:
             # DB 업데이트
             user = request.user
@@ -71,6 +72,23 @@ def profile_update(request):
             return redirect("/")  # 수정 후 메인 페이지로 이동
 
     return render(request, "/")
+
+@user_passes_test(lambda u: u.is_staff)  # 관리자만 실행 가능
+def deactivate_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    if user.is_staff:
+        messages.error(request, "관리자는 비활성화할 수 없습니다.")
+    else:
+        user.is_active = not user.is_active
+        user.save()
+
+        if user.is_active :
+            messages.success(request, f"{user.username} 계정이 활성화되었습니다.")
+        else:
+            messages.success(request, f"{user.username} 계정이 비활성화되었습니다.")
+
+    return redirect("admin_page")
+
 
 @staff_member_required(login_url="/accounts/login/")
 def admin_page(request):
