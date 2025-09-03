@@ -8,7 +8,7 @@
     <div class="alert alert-danger" style=" margin: 0 auto 3rem; height: 80px; display: flex; align-content: center; flex-wrap: wrap;">
         {% for field, errors in form.errors.items %}
         {% for error in errors %}
-        <p style="margin: 0;">{{ error }}</p>
+        <p style="margin: 0;">{{ error|linebreaksbr }}</p>
         {% endfor %}
         {% endfor %}
     </div>
