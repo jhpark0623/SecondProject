@@ -13,11 +13,11 @@ class CustomAuthForm(AuthenticationForm):
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
-            raise forms.ValidationError("❌ 존재하지 않는 아이디입니다.", code="invalid_login")
+            raise forms.ValidationError("❌ 아이디 또는 비밀번호가 잘못되었습니다.\n 아이디와 비밀번호를 정확히 입력해주세요.", code="invalid_login")
 
         # 2) 비밀번호 확인
         if not user.check_password(password):
-            raise forms.ValidationError("❌ 비밀번호가 틀렸습니다.", code="invalid_login")
+            raise forms.ValidationError("❌아이디 또는 비밀번호가 잘못되었습니다.\n 아이디와 비밀번호를 정확히 입력해주세요.", code="invalid_login")
 
         # 3) 비활성화 계정 확인
         if not user.is_active:
