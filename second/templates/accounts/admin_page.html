@@ -51,7 +51,7 @@
         </div>
 
         {% for user in users %}
-        <div class="row" {% if not user.is_active %} style="color: red" {% endif %}>
+        <div class="row" {% if not user.is_active %} style="color: red !important;" {% endif %}>
             <div class="cell">
                 <a href="{% url 'profile_admin' user.id %}">{{ user.username|default:"-" }} </a>
             </div>
