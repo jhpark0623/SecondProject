@@ -429,8 +429,68 @@
 
         parkingMarkers.push(marker);   // ✅ 배열에 저장
 
-        kakao.maps.event.addListener(marker, 'click', () => {
-            toggleInfowindow(marker, b.name);
+        const starChar = IS_AUTHENTICATED
+            ? (FAVORITE_SET.has(String(b.id)) ? '⭐' : '☆')
+            : '☆';
+
+           kakao.maps.event.addListener(marker, 'click', () => {
+           console.log(marker.isOpen)
+            if (marker.isOpen) {
+                infowindow.close();
+                marker.isOpen = false;
+            } else {
+                infowindow.setContent(`
+                    <div class="card shadow-sm" style="width: 300px; font-size: 14px; overflow-x: hidden;">
+                  <div class="card-header bg-primary text-white fw-bold">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <span>${b.name}</span>
+                        <button class="btn btn-sm btn-light favorite-btn" data-pk="${b.id}" title="즐겨찾기" style="line-height:1">
+                          <span class="star-icon">${starChar}</span>
+                        </button>
+                    </div>
+                  </div>
+
+                  <div class="card-body p-2">
+                      <div class="row gx-0 text-center mb-2">
+                          <div class="col-6 border-end">
+                              <div class="fw-bold">총 면수</div>
+                              <div>${b.total}</div>
+                          </div>
+                          <div class="col-6 bg-success text-white">
+                              <div class="fw-bold">가용 면수</div>
+                              <div>${b.avblPklotCnt}</div>
+                          </div>
+                      </div>
+                      <hr style="margin: 0">
+                      <table class="table table-sm mb-0">
+                          <tbody>
+                              <tr>
+                                  <th scope="row" style="width: 70px;">주소</th>
+                                  <td>${b.address || '정보 없음'}</td>
+                              </tr>
+                              <tr>
+                                  <th scope="row">운영시간</th>
+                                  <td>
+                                      평일: ${b.weekdayTime || '-'}<br>
+                                      토요일: ${b.saturdayTime || '-'}<br>
+                                      휴일: ${b.holidayTime || '-'}
+                                  </td>
+                              </tr>
+                              <tr>
+                                  <th scope="row">주차요금</th>
+                                  <td>
+                                      기본: ${b.basicRate || '-'}<br>
+                                      추가: ${b.addRate || '-'}
+                                  </td>
+                              </tr>
+                          </tbody>
+                      </table>
+                  </div>
+              </div>
+                `);
+                infowindow.open(map, marker);
+                marker.isOpen = true;
+            }
         });
     });
 
