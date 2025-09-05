@@ -30,8 +30,8 @@ def signup(request):
 
         user = User.objects.create_user(
             username=username,
-            name=name,
             email=email,
+            name=name,
             phone=phone,
             password=password1
         )
@@ -112,7 +112,13 @@ def admin_page(request):
     total_pages = paginator.num_pages
     start_page = max(current_page - 2, 1)
     end_page = min(current_page + 2, total_pages)
-    page_range = range(start_page, end_page + 1)
+
+    if current_page < 3:
+        page_range = range(1, min(total_pages + 1, 6))
+    elif current_page > total_pages - 2:
+        page_range = range(max(1, total_pages - 4), total_pages + 1)
+    else:
+        page_range = range(start_page, end_page + 1)
 
     return render(request, "accounts/admin_page.html", {
         "users": page_obj,     # 목록
@@ -166,7 +172,14 @@ def suggestion_list(request):
 
     start_page = max(current_page - 2, 1)
     end_page = min(current_page + 2, total_pages)
-    page_range = range(start_page, end_page + 1)
+
+    if current_page < 3:
+        page_range = range(1, min(total_pages + 1, 6))
+    elif current_page > total_pages - 2:
+        page_range = range(max(1, total_pages - 4), total_pages + 1)
+    else:
+        page_range = range(start_page, end_page + 1)
+
 
     return render(request, "accounts/suggestion_list.html", {
         "suggestions": page_obj,  # 목록

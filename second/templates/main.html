@@ -3,6 +3,23 @@
 
 {% block content %}
 
+<!-- 사이드바 슬라이딩 -->
+<script>
+    let state = true;
+
+    const toggle_sidebar = () => {
+        if (state) {
+            $("#sidebar_toggle").text(">");
+            $("#sidebar").addClass("slider-left").removeClass("slider-right");
+        } else {
+            $("#sidebar_toggle").text("<");
+            $("#sidebar").addClass("slider-right").removeClass("slider-left");
+        }
+
+        state = !state;
+    }
+</script>
+
 <style>
     html, body {
         margin: 0;
@@ -44,6 +61,7 @@
         height: calc(100vh - 56px);
         display: flex;
         flex-direction: column;
+        border-right: 1px solid #aaaaaa;
     }
 
     .sidebar h5 {
@@ -158,13 +176,14 @@
         position: absolute;
         top: 50%;
         right: -20px;
-        width: 20px;
+        width: 21px;
         height: 50px;
         padding: 0;
         margin: 0;
         border-bottom-right-radius: 5px;
         border-top-right-radius: 5px;
-        border: 0;
+        border: 1px solid #aaaaaa;
+        border-left: 0;
     }
 
     .dropdown-menu {
@@ -180,6 +199,10 @@
     li {
         cursor: pointer;
     }
+
+    .focus {
+        background-color: #f8f9fa;
+    }
 </style>
 
 <div class="container-fluid p-0 m-0">
@@ -189,13 +212,13 @@
             <!-- 🅿️ 왼쪽 주차장 목록 -->
             <div class="sidebar d-flex flex-column">
                 <!-- 검색창 + 검색 결과 -->
-                <div id="search">
+                <div id="search" tabindex="0">
                     <div class="form-control focus-ring  searchInput my-1 px-2" style="width: 98%; margin: 0 auto;">
-                        <input type="text" class="dropdown-toggle" id="search-input"
-                               placeholder="검색어를 입력하세요" data-bs-toggle="dropdown" aria-expanded="false">
+                        <input type="text" id="search-input" style="padding: 0;"
+                               placeholder="검색어를 입력하세요" aria-expanded="false">
 
-                        <button style="background-color: white; border: 0; display: flex; justify-content: center; align-content: center"
-                                id="search-btn" type="button">
+                        <button style="background-color: white; padding: 0; border: 0; display: flex; justify-content: center; align-content: center"
+                                id="search-btn" type="button" tabindex="-1">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                  stroke="currentColor" style="width: 20px">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -247,25 +270,6 @@
 <!-- 📌 Kakao 지도 API -->
 <script type="text/javascript"
         src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=863559e6bebce003983f160e07c1ac27&libraries=services"></script>
-
-<!-- 사이드바 슬라이딩 -->
-<script>
-
-    let state = true;
-
-    function toggle_sidebar() {
-        if (state) {
-            $("#sidebar_toggle").text(">");
-            $("#sidebar").addClass("slider-left").removeClass("slider-right");
-        } else {
-            $("#sidebar_toggle").text("<");
-            $("#sidebar").addClass("slider-right").removeClass("slider-left");
-        }
-
-        state = !state;
-    }
-
-</script>
 
 <script>
     // ================== 로그인 여부 플래그 ==================
@@ -429,14 +433,14 @@
             ? (FAVORITE_SET.has(String(b.id)) ? '⭐' : '☆')
             : '☆';
 
-           kakao.maps.event.addListener(marker, 'click', () => {
-           console.log(marker.isOpen)
+        kakao.maps.event.addListener(marker, 'click', () => {
+            console.log(marker.isOpen)
             if (marker.isOpen) {
                 infowindow.close();
                 marker.isOpen = false;
             } else {
                 infowindow.setContent(`
-                    <div class="card shadow-sm" style="width: 300px; font-size: 14px; overflow-x: hidden;">
+                    <div class="card shadow-sm" style="width: 300px; font-size: 14px; overflow-x: hidden; z-index:100;">
                   <div class="card-header bg-primary text-white fw-bold">
                     <div class="d-flex justify-content-between align-items-center">
                       <span>${b.name}</span>
@@ -514,7 +518,7 @@
             } else {
                 infowindow.close();
                 infowindow.setContent(`
-                    <div class="card" style="width: 18rem; margin:0;">
+                    <div class="card" style="z-index:100; width: 18rem; margin:0;">
                         <div class="card-body">
                             <h5 class="card-title">${c.name}</h5>
                         </div>
@@ -530,12 +534,14 @@
     function toggleParkingMarkers() {
         parkingVisible = !parkingVisible;
         parkingMarkers.forEach(m => m.setMap(parkingVisible ? map : null));
+        parkingVisible? infowindow.open() : infowindow.close();
         document.getElementById('parkingToggleBtn').style.backgroundColor = parkingVisible ? "#ddd" : "white";
     }
 
     function toggleCCTVMarkers() {
         cctvVisible = !cctvVisible;
         cctvMarkers.forEach(m => m.setMap(cctvVisible ? map : null));
+        parkingVisible? infowindow.open() : infowindow.close();
         document.getElementById('cctvToggleBtn').style.backgroundColor = cctvVisible ? "#ddd" : "white";
     }
 
@@ -795,7 +801,7 @@
         });
 
         searchMarkers.push(marker);
-        map.panTo(marker.getPosition());
+        map.setCenter(marker.getPosition());
 
         infowindow.setContent(`
     <div style="padding:5px; font-size:14px; max-width:250px;">
@@ -822,33 +828,33 @@
         renderParkingList(sortedBasics);
     }
 
-
-    searchInput.addEventListener("focus", (e) => {
-        if (autocompleteResults.innerHTML !== "")
-            dropdownInstance.show();
-    })
-
     // 입력 이벤트 처리 (실시간 호출)
     searchInput.addEventListener('input', () => {
         const keyword = searchInput.value.trim();
 
+        autocompleteResults.innerHTML = '';
 
         if (!keyword) { // input 태그가 비었을경우 dropdown 안보이게 하고 함수 종료
             dropdownInstance.hide();
-            autocompleteResults.innerHTML = '';
             return;
         }
-
-        if (autocompleteResults.innerHTML !== '') // 기존 li가 있을경우 초기화
-            autocompleteResults.innerHTML = '';
 
         ps.keywordSearch(keyword, (data, status) => {
             if (status === kakao.maps.services.Status.OK) {
                 data.slice(0, 5).forEach(place => { // 상위 5개만 추천
 
+                    // bootstrap dropdown과 형태를 맞추기 위해 li태그 안에 a태그 추가
                     const li = document.createElement('li');
-                    li.className = 'dropdown-item';
-                    li.textContent = place.place_name;
+                    const a = document.createElement('a');
+                    a.className = 'dropdown-item';
+                    a.textContent = place.place_name;
+                    li.append(a)
+                    li.setAttribute('tabindex', '0'); // li태그에 focus가능하게
+
+                    li.addEventListener('focus', () => {
+                        searchInput.value = place.place_name;
+                    })
+
                     li.addEventListener('click', () => {
                         searchInput.value = place.place_name;
                         autocompleteResults.innerHTML = '';
@@ -856,13 +862,26 @@
                         showPlaceOnMap(place); // 클릭 시 마커 표시
                     });
 
-                    li.addEventListener('mousedown', (event) => {
+                    li.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault()
+                            searchInput.value = place.place_name;
+                            autocompleteResults.innerHTML = '';
+                            dropdownInstance.hide();
+                            showPlaceOnMap(place); // 클릭 시 마커 표시
+                        } else if (e.key === 'Escape') { // esc 입력시 dropdown hide
+                            e.preventDefault()
+                            searchInput.focus()
+                            dropdownInstance.hide();
+                        }
+                    })
+
+                    li.addEventListener('mousedown', (e) => {
                         // mousedown 이벤트에서 input 태그의 blur 이벤트 방어
-                        event.preventDefault();
+                        e.preventDefault();
                     });
                     autocompleteResults.appendChild(li);
                 });
-                console.log(data.length)
 
                 dropdownInstance.show();
 
@@ -876,18 +895,56 @@
 
     });
 
-    searchInput.addEventListener("blur", () => {
+    searchInput.addEventListener("focus", (e) => {
+        if (autocompleteResults.innerHTML !== "")
+            dropdownInstance.show();
+    })
+
+    searchInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { // 엔터키 검색
+            e.preventDefault()
+            const firstItem = autocompleteResults.querySelector('li');
+            if (firstItem) firstItem.click();
+        } else if (e.key === 'ArrowDown') { // 아래 방향키 입력시 검색 리스트가 있을시 리스트로 포커스 이동
+            e.preventDefault()
+            if (autocompleteResults.classList.contains('show')) { // dropdown이 열려있으면 리스트로 이동
+                const inputItem = autocompleteResults.firstElementChild
+                inputItem && inputItem.focus();
+            } else if (autocompleteResults.innerHTML !== "") { // dropdown이 닫혀있고 검색결과가 있는 경우 dropdown show
+                dropdownInstance.show();
+            }
+        } else if (e.key === 'Escape' || e.key === 'ArrowUp') { // esc 입력시 dropdown hide
+            e.preventDefault()
+            dropdownInstance.hide();
+        }
+    });
+
+    search.addEventListener("focusout", (e) => { // 다른곳 클릭 시 dropdown hide
+        if (e.relatedTarget && search.contains(e.relatedTarget))
+            return;
         dropdownInstance.hide();
     });
 
-    // 엔터키 검색
-    searchInput.addEventListener('keydown', e => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const firstItem = autocompleteResults.querySelector('li');
-            if (firstItem) firstItem.click();
+    // dropdown에서 위, 아래 방향키를 이용하여 리스트 이동
+    autocompleteResults.addEventListener('keydown', (e) => {
+        if (e.target.tagName.toLowerCase() === 'li') {
+
+            const items = Array.from(autocompleteResults.querySelectorAll("li"));
+            const index = items.indexOf(e.target);
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+
+                items[index + 1] && items[index + 1].focus();
+            }
+
+            if (e.key === "ArrowUp") {
+                e.preventDefault();
+                const prev = items[index - 1] || searchInput;
+                prev && prev.focus();
+            }
         }
-    });
+    })
 
     // === (추가) 지도 움직이거나 줌 바꾸면 인포윈도우 닫기 ===
     function closeAllInfoWindows() {
@@ -906,6 +963,7 @@
         initFocusFromUrl();   // 쿼리로 온 경우(호환)
         focusFromSession();   // 세션으로 온 경우(주소 깔끔)
     });
+
 </script>
 
 {% endblock %}

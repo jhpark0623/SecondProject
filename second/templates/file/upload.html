@@ -2,14 +2,25 @@
 
 {% block content %}
 
-<h2>CSV 파일 업로드</h2>
+<div style="width: 500px; margin: 50px auto">
+    <h2>CSV 파일 업로드</h2>
     {% if error %}
-        <p style="color:red;">{{ error }}</p>
+    <p style="color:red;">{{ error }}</p>
     {% endif %}
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit">업로드</button>
     </form>
+    <div style="margin: 20px 0">※ 필수 데이터 컬럼명 ※</div>
+    <div>
+        <div> - 무인교통단속카메라관리번호</div>
+        <div> - 위도</div>
+        <div> - 경도</div>
+        <div> - 소재지지번주소</div>
+        <div> - 설치장소</div>
+        <div> - 데이터기준일자</div>
+    </div>
 
+</div>
 {% endblock %}

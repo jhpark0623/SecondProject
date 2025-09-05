@@ -4,10 +4,9 @@ from .models import ParkingBasic, ParkingAvailability
 
 
 def save_parking_basic():
-    url = "https://openapigits.gg.go.kr/api/rest/getParkingPlaceInfoList?serviceKey=95b8cff60d5626815e5938356eec4d7ac28384&laeId=31100"  # 실제 API 주소
+    url = "https://openapigits.gg.go.kr/api/rest/getParkingPlaceInfoList?serviceKey=95b8cff60d5626815e5938356eec4d7ac28384&laeId=31100"
     response = requests.get(url)
     data = xmltodict.parse(response.text)
-    
 
     items = data['ServiceResult']['msgBody']['itemList']
 
@@ -39,20 +38,22 @@ def save_parking_basic():
 
 
 def save_parking_availability():
-    url = "https://openapigits.gg.go.kr/api/rest/getParkingPlaceAvailabilityInfoList?serviceKey=95b8cff60d5626815e5938356eec4d7ac28384&laeId=31100"  # 실제 API 주소
+    url = "https://openapigits.gg.go.kr/api/rest/getParkingPlaceAvailabilityInfoList?serviceKey=95b8cff60d5626815e5938356eec4d7ac28384&laeId=31100"
     response = requests.get(url)
     data = xmltodict.parse(response.text)
 
-    items = data['ServiceResult']['msgBody']['itemList']
+    items = data['ServiceResult']['msgBody']['itemList']  # xml 데이터 구조
     if isinstance(items, dict):
         items = [items]
 
     for item in items:
         ParkingAvailability.objects.update_or_create(
             pkplcId=item.get('pkplcId', ''),
-            defaults={'laeNm' : item.get("laeNm", ""),
-        'pkplcNm' : item.get("pkplcNm", ""),
-        'pklotCnt' : item.get("pklotCnt", ""),
-        'avblPklotCnt' : item.get("avblPklotCnt", ""),
-        'ocrnDt' : item.get("ocrnDt", "")}
+            defaults={
+                'laeNm': item.get("laeNm", ""),
+                'pkplcNm': item.get("pkplcNm", ""),
+                'pklotCnt': item.get("pklotCnt", ""),
+                'avblPklotCnt': item.get("avblPklotCnt", ""),
+                'ocrnDt': item.get("ocrnDt", "")
+            }
         )

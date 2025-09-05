@@ -51,7 +51,7 @@
         </div>
 
         {% for user in users %}
-        <div class="row" {% if not user.is_active %} style="color: red" {% endif %}>
+        <div class="row" {% if not user.is_active %} style="color: red !important;" {% endif %}>
             <div class="cell">
                 <a href="{% url 'profile_admin' user.id %}">{{ user.username|default:"-" }} </a>
             </div>
@@ -77,10 +77,8 @@
             <div class="cell">{% if user.is_active %} O {% else %} X {% endif %}</div>
         </div>
         {% empty %}
-        <div class="row">
-            <div class="cell" colspan="5">
+        <div>
                 등록된 사용자가 없습니다
-            </div>
         </div>
 
         {% endfor %}

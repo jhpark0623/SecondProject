@@ -6,6 +6,7 @@
 <style>
     .container-profile {
         width: 30%;
+        min-width: 400px;
         margin: 50px auto;
         background: #fff;
         padding: 35px;
@@ -44,14 +45,15 @@
         <div class="mb-3">
             <label for="email" class="form-label">이메일</label>
             <input type="email" class="form-control" id="email"
-                   name="email" value="{{ profile_user.email }}">
+                   name="email" value="{{ profile_user.email }}" readonly>
         </div>
 
         <div class="mb-3">
             <label for="phone" class="form-label">전화번호</label>
             <input type="text" class="form-control" id="phone"
-                   name="phone" value="{{ profile_user.phone }}" required><br>
+                   name="phone" value="{{ profile_user.phone }}" required readonly><br>
         </div>
+
         <div class="d-flex justify-content-between">
             {% if profile_user.is_active %}
             <button type="submit" class="btn btn-danger">비활성화</button>
@@ -61,7 +63,9 @@
             <button type="button" class="btn btn-secondary" onclick="history.back()">목록</button>
         </div>
     </form>
+
     {% elif request.user.id == profile_user.id %}
+
     <form method="post" action="{% url 'update' %}">
         {% csrf_token %}
 
