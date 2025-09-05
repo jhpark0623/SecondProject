@@ -23,8 +23,8 @@
 
         .form-control:focus-within {
             border-color: #86b7fe;
-            outline: 0;
             box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+            outline: 0;
         }
 
         input,
@@ -89,8 +89,6 @@
             <br>
             <li><a class="nav-link " href="{% url 'admin_page' %}">관리자 페이지</a></li>
             <br>
-            <li><a class="nav-link " href="{% url 'upload_csv' %}">단속 카메라 등록</a></li>
-            <br>
             {% else %}
             <li><span class="nav-link">{{ user.username }}님 안녕하세요 </span></li>
             <br>
@@ -103,6 +101,10 @@
             {% endif %}
             <li><a class="nav-link" href="{% url 'suggestion_list' %}">건의 게시판</a></li>
             <br>
+            {% if user.is_staff %}
+             <li><a class="nav-link " href="{% url 'upload_csv' %}">단속 카메라 등록</a></li>
+            <br>
+            {% endif %}
             <li>
                 <form method="post" action="{% url 'logout' %}">
                     {% csrf_token %}

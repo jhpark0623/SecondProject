@@ -77,10 +77,8 @@
             <div class="cell">{% if user.is_active %} O {% else %} X {% endif %}</div>
         </div>
         {% empty %}
-        <div class="row">
-            <div class="cell" colspan="5">
+        <div>
                 등록된 사용자가 없습니다
-            </div>
         </div>
 
         {% endfor %}

@@ -200,7 +200,7 @@
         cursor: pointer;
     }
 
-    .focus{
+    .focus {
         background-color: #f8f9fa;
     }
 </style>
@@ -214,10 +214,10 @@
                 <!-- 검색창 + 검색 결과 -->
                 <div id="search" tabindex="0">
                     <div class="form-control focus-ring  searchInput my-1 px-2" style="width: 98%; margin: 0 auto;">
-                        <input type="text" id="search-input"
+                        <input type="text" id="search-input" style="padding: 0;"
                                placeholder="검색어를 입력하세요" aria-expanded="false">
 
-                        <button style="background-color: white; border: 0; display: flex; justify-content: center; align-content: center"
+                        <button style="background-color: white; padding: 0; border: 0; display: flex; justify-content: center; align-content: center"
                                 id="search-btn" type="button" tabindex="-1">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                  stroke="currentColor" style="width: 20px">
@@ -433,14 +433,14 @@
             ? (FAVORITE_SET.has(String(b.id)) ? '⭐' : '☆')
             : '☆';
 
-           kakao.maps.event.addListener(marker, 'click', () => {
-           console.log(marker.isOpen)
+        kakao.maps.event.addListener(marker, 'click', () => {
+            console.log(marker.isOpen)
             if (marker.isOpen) {
                 infowindow.close();
                 marker.isOpen = false;
             } else {
                 infowindow.setContent(`
-                    <div class="card shadow-sm" style="width: 300px; font-size: 14px; overflow-x: hidden;">
+                    <div class="card shadow-sm" style="width: 300px; font-size: 14px; overflow-x: hidden; z-index:100;">
                   <div class="card-header bg-primary text-white fw-bold">
                     <div class="d-flex justify-content-between align-items-center">
                       <span>${b.name}</span>
@@ -518,7 +518,7 @@
             } else {
                 infowindow.close();
                 infowindow.setContent(`
-                    <div class="card" style="width: 18rem; margin:0;">
+                    <div class="card" style="z-index:100; width: 18rem; margin:0;">
                         <div class="card-body">
                             <h5 class="card-title">${c.name}</h5>
                         </div>
@@ -534,12 +534,14 @@
     function toggleParkingMarkers() {
         parkingVisible = !parkingVisible;
         parkingMarkers.forEach(m => m.setMap(parkingVisible ? map : null));
+        parkingVisible? infowindow.open() : infowindow.close();
         document.getElementById('parkingToggleBtn').style.backgroundColor = parkingVisible ? "#ddd" : "white";
     }
 
     function toggleCCTVMarkers() {
         cctvVisible = !cctvVisible;
         cctvMarkers.forEach(m => m.setMap(cctvVisible ? map : null));
+        parkingVisible? infowindow.open() : infowindow.close();
         document.getElementById('cctvToggleBtn').style.backgroundColor = cctvVisible ? "#ddd" : "white";
     }
 
@@ -862,10 +864,15 @@
 
                     li.addEventListener('keydown', (e) => {
                         if (e.key === 'Enter') {
+                            e.preventDefault()
                             searchInput.value = place.place_name;
                             autocompleteResults.innerHTML = '';
                             dropdownInstance.hide();
                             showPlaceOnMap(place); // 클릭 시 마커 표시
+                        } else if (e.key === 'Escape') { // esc 입력시 dropdown hide
+                            e.preventDefault()
+                            searchInput.focus()
+                            dropdownInstance.hide();
                         }
                     })
 
@@ -894,9 +901,7 @@
     })
 
     searchInput.addEventListener('keydown', e => {
-        console.log(e.key)
-        // 엔터키 검색
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter') { // 엔터키 검색
             e.preventDefault()
             const firstItem = autocompleteResults.querySelector('li');
             if (firstItem) firstItem.click();
@@ -908,7 +913,7 @@
             } else if (autocompleteResults.innerHTML !== "") { // dropdown이 닫혀있고 검색결과가 있는 경우 dropdown show
                 dropdownInstance.show();
             }
-        } else if (e.key === 'Escape') { // esc 입력시 dropdown hide
+        } else if (e.key === 'Escape' || e.key === 'ArrowUp') { // esc 입력시 dropdown hide
             e.preventDefault()
             dropdownInstance.hide();
         }
