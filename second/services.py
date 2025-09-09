@@ -8,9 +8,9 @@ def save_parking_basic():
     response = requests.get(url)
     data = xmltodict.parse(response.text)
 
+
     items = data['ServiceResult']['msgBody']['itemList']
 
-    # itemList가 하나만 오면 dict, 여러 개면 list
     if isinstance(items, dict):
         items = [items]
 
